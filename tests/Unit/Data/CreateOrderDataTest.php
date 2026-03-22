@@ -35,17 +35,17 @@ describe('CreateOrderData DTO', function (): void {
 
     it('can be constructed from a snake_case array', function (): void {
         $dto = CreateOrderData::fromArray([
-            'order_id'            => 'ORD-002',
-            'first_name'          => 'Fatima',
-            'last_name'           => 'Benali',
-            'phone'               => '0661234567',
-            'address'             => '12 Rue Didouche Mourad',
-            'to_wilaya_id'        => 31,
-            'to_commune'          => 'Oran',
+            'order_id' => 'ORD-002',
+            'first_name' => 'Fatima',
+            'last_name' => 'Benali',
+            'phone' => '0661234567',
+            'address' => '12 Rue Didouche Mourad',
+            'to_wilaya_id' => 31,
+            'to_commune' => 'Oran',
             'product_description' => 'Laptop',
-            'price'               => 85000,
-            'delivery_type'       => 1,
-            'notes'               => 'Leave at door',
+            'price' => 85000,
+            'delivery_type' => 1,
+            'notes' => 'Leave at door',
         ]);
 
         expect($dto->orderId)->toBe('ORD-002')
@@ -59,16 +59,16 @@ describe('CreateOrderData DTO', function (): void {
 
     it('maps is_stopdesk flag to STOP_DESK delivery type', function (): void {
         $dto = CreateOrderData::fromArray([
-            'order_id'            => 'ORD-003',
-            'first_name'          => 'Ali',
-            'last_name'           => 'Khelifi',
-            'phone'               => '0771234567',
-            'address'             => 'Agence Tizi',
-            'to_wilaya_id'        => 15,
-            'to_commune'          => 'Tizi Ouzou',
+            'order_id' => 'ORD-003',
+            'first_name' => 'Ali',
+            'last_name' => 'Khelifi',
+            'phone' => '0771234567',
+            'address' => 'Agence Tizi',
+            'to_wilaya_id' => 15,
+            'to_commune' => 'Tizi Ouzou',
             'product_description' => 'Shoes',
-            'price'               => 3500,
-            'is_stopdesk'         => true,
+            'price' => 3500,
+            'is_stopdesk' => true,
         ]);
 
         expect($dto->deliveryType)->toBe(DeliveryType::STOP_DESK);
@@ -110,6 +110,6 @@ describe('CreateOrderData DTO', function (): void {
             price: 500.0,
         );
 
-        expect(fn() => $dto->orderId = 'CHANGED')->toThrow(\Error::class);
+        expect(fn () => $dto->orderId = 'CHANGED')->toThrow(Error::class);
     });
 });

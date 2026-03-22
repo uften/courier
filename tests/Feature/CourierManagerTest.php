@@ -133,7 +133,7 @@ describe('CourierManager', function (): void {
 
     it('throws InvalidCredentialsConfigException when token is missing', function (): void {
         $manager = new CourierManager(['providers' => ['dhd' => []]]);
-        expect(fn() => $manager->provider(Provider::DHD))
+        expect(fn () => $manager->provider(Provider::DHD))
             ->toThrow(InvalidCredentialsConfigException::class);
     });
 
@@ -172,7 +172,7 @@ describe('CourierManager', function (): void {
             }
         };
 
-        Courier::extend(Provider::DHD, fn() => $fake);
+        Courier::extend(Provider::DHD, fn () => $fake);
         Courier::flushResolved();
 
         expect(Courier::provider(Provider::DHD))->toBe($fake);

@@ -50,7 +50,7 @@ final class CourierManager
      */
     public function provider(Provider $provider, ?array $credentials = null): ProviderAdapter
     {
-        $cacheKey = $provider->value . ($credentials ? ':' . md5(serialize($credentials)) : '');
+        $cacheKey = $provider->value.($credentials ? ':'.md5(serialize($credentials)) : '');
 
         if (isset($this->resolved[$cacheKey])) {
             return $this->resolved[$cacheKey];

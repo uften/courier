@@ -356,7 +356,7 @@ final class ZimouAdapter extends AbstractAdapter
         // Zimou returns error:1 even on HTTP 201 for validation failures
         if (isset($response['error']) && (int) $response['error'] === 1) {
             throw new CourierException(
-                'Zimou Express rejected the order: ' . ($response['message'] ?? 'Unknown error'),
+                'Zimou Express rejected the order: '.($response['message'] ?? 'Unknown error'),
             );
         }
 
@@ -525,7 +525,7 @@ final class ZimouAdapter extends AbstractAdapter
             trackingNumber: (string) ($raw['tracking_code'] ?? (string) ($raw['id'] ?? '')),
             provider: Provider::ZIMOU,
             status: $status,
-            recipientName: trim(($raw['client_first_name'] ?? '') . ' ' . ($raw['client_last_name'] ?? '')),
+            recipientName: trim(($raw['client_first_name'] ?? '').' '.($raw['client_last_name'] ?? '')),
             phone: (string) ($raw['client_phone'] ?? ''),
             address: (string) ($raw['address'] ?? ''),
             toWilayaId: $wilayaId,
@@ -557,7 +557,7 @@ final class ZimouAdapter extends AbstractAdapter
             trackingNumber: $trackingNumber,
             provider: Provider::ZIMOU,
             status: $status,
-            recipientName: trim(($raw['client_first_name'] ?? '') . ' ' . ($raw['client_last_name'] ?? '')),
+            recipientName: trim(($raw['client_first_name'] ?? '').' '.($raw['client_last_name'] ?? '')),
             phone: (string) ($raw['client_phone'] ?? ''),
             address: (string) ($raw['address'] ?? ''),
             toWilayaId: (int) ($raw['wilaya_id'] ?? 0),

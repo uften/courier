@@ -48,7 +48,7 @@ describe('TrackingStatus enum', function (): void {
 
         $nonSuccessful = array_filter(
             TrackingStatus::cases(),
-            fn(TrackingStatus $s): bool => $s !== TrackingStatus::DELIVERED,
+            fn (TrackingStatus $s): bool => $s !== TrackingStatus::DELIVERED,
         );
 
         foreach ($nonSuccessful as $status) {
