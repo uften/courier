@@ -7,7 +7,7 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ---
 
-## [Unreleased]
+## [1.0.0] - 2026-03-22
 
 ### Added
 
@@ -27,7 +27,7 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ---
 
-## [1.1.0] - 2026-03-15
+## [Unreleased] - 2026-03-15
 
 ### Added
 
@@ -51,7 +51,7 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ---
 
-## [1.0.0] - 2026-03-01
+## [Unreleased] - 2026-03-01
 
 ### Added
 
@@ -75,7 +75,3 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 -   Publishable `config/courier.php`.
 -   Pest test suite: Unit (enums, DTOs) + Feature (manager + all four adapters via MockHandler).
 -   GitHub Actions CI: PHP 8.4 × Laravel 11 + 12, Pint.
-
-[Unreleased]: https://github.com/uften/courier/compare/v1.1.0...HEAD
-[1.1.0]: https://github.com/uften/courier/compare/v1.0.0...v1.1.0
-[1.0.0]: https://github.com/uften/courier/releases/tag/v1.0.0
