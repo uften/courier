@@ -1,0 +1,75 @@
+{
+    "name": "uften/courier",
+    "description": "A modern, strictly-typed Laravel package for integrating Algerian shipping providers (Yalidine, Maystro, Procolis/ZR Express, Ecotrack) with a unified adapter-based API.",
+    "type": "library",
+    "keywords": [
+        "laravel",
+        "php",
+        "shipping",
+        "algeria",
+        "yalidine",
+        "maystro",
+        "procolis",
+        "zr-express",
+        "ecotrack",
+        "courier",
+        "delivery",
+        "tracking"
+    ],
+    "homepage": "https://github.com/uften/courier",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Mohammed A. ALLAL",
+            "email": "dzm@live.com",
+            "homepage": "https://github.com/uften",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": "^8.4",
+        "guzzlehttp/guzzle": "^7.9",
+        "illuminate/contracts": "^11.0|^12.0",
+        "illuminate/support": "^11.0|^12.0"
+    },
+    "require-dev": {
+        "laravel/pint": "^1.20",
+        "mockery/mockery": "^1.6",
+        "orchestra/testbench": "^9.0|^10.0",
+        "pestphp/pest": "^3.0",
+        "pestphp/pest-plugin-laravel": "^3.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Uften\\Courier\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Uften\\Courier\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "pest",
+        "test:coverage": "pest --coverage",
+        "format": "pint"
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Uften\\Courier\\CourierServiceProvider"
+            ],
+            "aliases": {
+                "Courier": "Uften\\Courier\\Facades\\Courier"
+            }
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
