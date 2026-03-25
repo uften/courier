@@ -26,7 +26,8 @@ Facade (Courier)
     └── CourierManager                  ← factory + cache
             ├── YalidineAdapter         (Yalidine + Yalitec)
             ├── MaystroAdapter
-            ├── ProcolisAdapter         (Procolis + ZR Express)
+            ├── ProcolisAdapter         (Procolis + ZR Express legacy)
+            ├── ZrExpressNewAdapter     (ZR Express NEW — api.zrexpress.app)
             ├── ZimouAdapter            (Zimou Express — delivery router)
             └── EcotrackAdapter         (Ecotrack + 22 sub-providers)
                         ↑
@@ -60,15 +61,16 @@ Every piece of data entering or leaving an adapter is a typed DTO. No raw arrays
 29 cases across 5 engine groups. The enum is the single source of truth for base URL, adapter class, credential requirements, and display metadata.
 
 ```
-Yalidine engine  : YALIDINE, YALITEC
-Maystro          : MAYSTRO
-Procolis engine  : PROCOLIS, ZREXPRESS
-Zimou Express    : ZIMOU
-Ecotrack engine  : ECOTRACK, ANDERSON, AREEX, BA_CONSULT, CONEXLOG,
-                   COYOTE_EXPRESS, DHD, DISTAZERO, E48HR, FRETDIRECT,
-                   GOLIVRI, MONO_HUB, MSM_GO, NEGMAR_EXPRESS, PACKERS,
-                   PREST, RB_LIVRAISON, REX_LIVRAISON, ROCKET_DELIVERY,
-                   SALVA_DELIVERY, SPEED_DELIVERY, TSL_EXPRESS, WORLDEXPRESS
+Yalidine engine     : YALIDINE, YALITEC  (2)
+Maystro             : MAYSTRO              (1)
+Procolis engine     : PROCOLIS, ZREXPRESS  (2 — legacy)
+ZR Express NEW      : ZREXPRESS_NEW        (1 — new platform)
+Zimou Express       : ZIMOU                (1)
+Ecotrack engine     : ECOTRACK, ANDERSON, AREEX, BA_CONSULT, CONEXLOG,
+                      COYOTE_EXPRESS, DHD, DISTAZERO, E48HR, FRETDIRECT,
+                      GOLIVRI, MONO_HUB, MSM_GO, NEGMAR_EXPRESS, PACKERS,
+                      PREST, RB_LIVRAISON, REX_LIVRAISON, ROCKET_DELIVERY,
+                      SALVA_DELIVERY, SPEED_DELIVERY, TSL_EXPRESS, WORLDEXPRESS
 ```
 
 | Method               | Returns            | Description                                            |
@@ -124,8 +126,11 @@ enum LabelType: string {
     case PDF_BASE64 = 'pdf_base64';
     case PDF_URL    = 'pdf_url';
     case IMAGE_URL  = 'image_url';
+    case HTML_URL   = 'html_url';
 }
 ```
+
+-   `LabelType::HTML_URL` exists for providers that return HTML label files via URL (e.g. ZR Express NEW). Use it when the label is an HTML document, not a PDF or image.
 
 ---
 
@@ -281,11 +286,12 @@ $meta = Provider::DHD->metadata();
 
 ## Credentials DTOs
 
-| Class                 | Required Keys  | Used By                                      |
-| --------------------- | -------------- | -------------------------------------------- |
-| `YalidineCredentials` | `token`, `key` | Yalidine, Yalitec                            |
-| `TokenCredentials`    | `token`        | Maystro, Zimou, Ecotrack + all sub-providers |
-| `ProcolisCredentials` | `id`, `token`  | Procolis, ZR Express                         |
+| Class                     | Required Keys          | Used By                                      |
+| ------------------------- | ---------------------- | -------------------------------------------- |
+| `YalidineCredentials`     | `token`, `key`         | Yalidine, Yalitec                            |
+| `TokenCredentials`        | `token`                | Maystro, Zimou, Ecotrack + all sub-providers |
+| `ZrExpressNewCredentials` | `tenant_id`, `api_key` | ZR Express NEW                               |
+| `ProcolisCredentials`     | `id`, `token`          | Procolis, ZR Express                         |
 
 All have `fromArray(array $data): self` that throws `\InvalidArgumentException` on missing keys. `CourierManager` wraps these in `InvalidCredentialsConfigException`.
 
@@ -346,13 +352,103 @@ Utility methods: `dig(array, string ...$keys): mixed` (safe nested access), `par
 
 ### Concrete Adapters
 
-| Adapter           | Engine         |  Status mapping  |        Label        | Notes                                                                                                      |
-| ----------------- | -------------- | :--------------: | :-----------------: | ---------------------------------------------------------------------------------------------------------- |
-| `YalidineAdapter` | Yalidine       |    20 strings    |   ✅ URL + Base64   | Accepts `Provider` param — covers YALIDINE and YALITEC. `getRates()` requires `$fromWilayaId`.             |
-| `MaystroAdapter`  | Standalone     |    15 strings    | ✅ Base64 (raw PDF) | Auth: `Token <token>`. Delivery type mapping is inverted (0=home, 1=stop desk). Exposes `createProduct()`. |
-| `ProcolisAdapter` | Procolis       |    14 strings    |      ❌ throws      | Covers PROCOLIS and ZREXPRESS via `$resolvedProvider` param. Auth params appended to each request.         |
-| `ZimouAdapter`    | Zimou (router) | 54 IDs + strings | ✅ Base64 (raw PDF) | See below.                                                                                                 |
-| `EcotrackAdapter` | Ecotrack       |    18 strings    |   ✅ URL + Base64   | Accepts `Provider` param — covers ECOTRACK + all 22 sub-providers by subdomain.                            |
+| Adapter               | Engine         |     Status mapping     |        Label        | Notes                                                                                                      |
+| --------------------- | -------------- | :--------------------: | :-----------------: | ---------------------------------------------------------------------------------------------------------- |
+| `YalidineAdapter`     | Yalidine       |       20 strings       |   ✅ URL + Base64   | Accepts `Provider` param — covers YALIDINE and YALITEC. `getRates()` requires `$fromWilayaId`.             |
+| `MaystroAdapter`      | Standalone     |       15 strings       | ✅ Base64 (raw PDF) | Auth: `Token <token>`. Delivery type mapping is inverted (0=home, 1=stop desk). Exposes `createProduct()`. |
+| `ProcolisAdapter`     | Procolis       |       14 strings       |      ❌ throws      | Covers PROCOLIS and ZREXPRESS via `$resolvedProvider` param. Auth params appended to each request.         |
+| `ZrExpressNewAdapter` | ZR Express NEW | 20+ slugs + PascalCase |      ❌ throws      | See below.                                                                                                 |
+| `ZimouAdapter`        | Zimou (router) |    54 IDs + strings    | ✅ Base64 (raw PDF) | See below.                                                                                                 |
+| `EcotrackAdapter`     | Ecotrack       |       18 strings       |   ✅ URL + Base64   | Accepts `Provider` param — covers ECOTRACK + all 22 sub-providers by subdomain.                            |
+
+---
+
+### `ZrExpressNewAdapter` — Deep Dive
+
+ZR Express NEW is a completely redesigned REST API, unrelated to the legacy Procolis engine.
+
+**Auth:** `X-Tenant: {tenantId}` + `X-Api-Key: {apiKey}` (two separate custom headers, no Bearer)
+
+**Two-step `createOrder()`:**
+
+```
+POST /api/v1/parcels  →  {"id": "uuid"}
+GET  /api/v1/parcels/{uuid}  →  full GetParcelResponse
+```
+
+The adapter performs both calls and always returns a fully populated `OrderData`.
+
+**Territory UUIDs:**
+
+`cityTerritoryId` is now **auto-resolved** from `CreateOrderData::$toWilayaId` using the built-in wilaya map. The minimum notes format is:
+
+```
+"zr_district:{districtUUID}"
+```
+
+Full explicit format (still supported, overrides auto-resolution):
+
+```
+"zr_city:{cityUUID}|zr_district:{districtUUID}|optional note"
+```
+
+The adapter throws `CourierException` with distinct messages distinguishing:
+
+-   "district missing" — `zr_district:` not found in notes.
+-   "city cannot be resolved" — `toWilayaId` not in the wilaya map AND no `zr_city:` in notes.
+
+**`getOrder()` dual-path:**
+
+```
+UUID string   → GET /api/v1/parcels/{id}
+Tracking no.  → GET /api/v1/parcels/{trackingNumber}   (e.g. "16-JUKYSI-ZR")
+```
+
+Both endpoints return the identical `GetParcelResponse` schema.
+
+**`cancelOrder()`:**
+
+`DELETE /api/v1/parcels/{id}` requires the UUID. If a tracking number is passed, the adapter fetches the parcel first to resolve its UUID (two HTTP calls).
+
+**`getRates()`:**
+
+`GET /api/v1/delivery-pricing/rates` returns rates at **commune level**, not wilaya level. This is ZR Express NEW's native granularity — each entry represents a specific commune (district), not a wilaya. Consequently:
+
+-   `RateData::$toWilayaId` is `0` for all entries (no numeric code at commune level).
+-   `RateData::$toWilayaName` contains the commune name (e.g. `"Ouled Yaich"`).
+-   Three price types are returned: `home` → `homeDeliveryPrice`, `pickup-point` → `stopDeskPrice`, `return` (not in `RateData`, check raw response if needed).
+-   The `$fromWilayaId` / `$toWilayaId` parameters are accepted but not used for filtering.
+
+**`getLabel()`:**
+
+`POST /api/v1/parcels/labels/individual` accepts a single tracking number and returns `LabelType::HTML_URL`. The URL is a **time-limited Azure Blob Storage SAS URL** pointing to an HTML file containing 4 identical A6 labels arranged in a 2×2 grid on an A4 page (for physical redundancy — attach to multiple sides of the package).
+
+-   SAS URLs expire — do not persist them; generate fresh labels when needed.
+-   The label endpoint may require `Authorization: Bearer {JWT}` in addition to `X-Api-Key`. If `getLabel()` returns 401, set `bearerToken` in `ZrExpressNewCredentials`:
+
+```php
+new ZrExpressNewCredentials(
+    tenantId:    'your-tenant-id',
+    apiKey:      'your-api-key',
+)
+```
+
+**WILAYA_UUID_MAP:**
+
+A static map of all 54 wilaya codes (integers 1–58, with gaps for wilayas not yet registered in ZR Express NEW: 33, 37, 50, 56) to their territory UUIDs. Used internally by `createOrder()` to auto-resolve `cityTerritoryId` from `CreateOrderData::$toWilayaId`, removing the need to embed `zr_city:` in notes for standard wilaya deliveries.
+
+**Status mapping strategy:**
+
+ZR Express NEW state names come in two formats:
+
+-   **Snake_case slugs** from the workflow engine: `commande_recue`, `sortie_en_livraison`, `livre`, etc.
+-   **PascalCase names** seen in API responses: `OrderReceived`, `OutForDelivery`, `Delivered`, etc.
+
+`normalizeStatus()` handles both using case-insensitive matching, stripping underscores for PascalCase comparison.
+
+**`situation.name` surfacing:**
+
+After state changes, the parcel response includes a `situation` sub-object (e.g. `{name: "Ne répond pas 1", slug: "ne_repond_pas_1"}`). This is surfaced in `OrderData::$notes`.
 
 ---
 
@@ -420,6 +516,7 @@ $adapter = app(CourierManager::class)->provider(Provider::ZIMOU, [
 
 // By string value
 $adapter = app(CourierManager::class)->via('zimou');
+$adapter = app(CourierManager::class)->via('zrexpress_new');
 
 // Metadata without adapter instantiation
 $meta = app(CourierManager::class)->metadataFor(Provider::ZIMOU);

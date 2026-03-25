@@ -7,6 +7,23 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ---
 
+## [1.1.0] - 2026-03-25
+
+### Added
+
+-   **ZR Express New API** — full integration for ZR Express new api platform (v1 API)
+-   `LabelType::HTML_URL` enum case — for label endpoints that return an HTML file URL (used by ZR Express NEW individual labels).
+-   **`ZrExpressNewAdapter`**: completed `getRates()` and `getLabel()` implementations.
+    -   `getRates()` via `GET /api/v1/delivery-pricing/rates` — returns rates at **commune level** (ZR Express NEW's native granularity). `RateData::$toWilayaId` will be `0` for all commune entries because the API does not return a numeric code at this level; use `$rate->toWilayaName` (commune name) for display. Three price types per territory: `home` → `homeDeliveryPrice`, `pickup-point` → `stopDeskPrice`, `return` (preserved in raw).
+    -   `getLabel()` via `POST /api/v1/parcels/labels/individual` — returns `LabelType::HTML_URL`. The URL is a time-limited Azure Blob Storage SAS token pointing to an HTML file with 4 identical A6 labels on one A4 page. If the API returns 401, add `bearer_token` to `ZrExpressNewCredentials`; when set, the adapter sends `Authorization: Bearer {token}` on label requests only.
+    -   `WILAYA_UUID_MAP` — static map of all 54 wilaya codes (1–58, with gaps for unregistered wilayas) to their ZR Express NEW territory UUIDs. Used to auto-resolve `cityTerritoryId` from `CreateOrderData::$toWilayaId`, so the notes convention is now simplified to just `"zr_district:{uuid}"` for standard wilaya deliveries.
+    -   `CreateOrderData::$notes` convention updated: `zr_city:` prefix is now **optional** when `toWilayaId` maps to a known wilaya code. Missing city UUID now throws with a clearer error message distinguishing "district missing" from "city cannot be resolved".
+-   `ZrExpressNewCredentials` — added optional `bearerToken` field (`bearer_token` / `bearerToken` in `fromArray()`). Defaults to `null`; only needed for `getLabel()` if `X-Api-Key` is rejected by the label endpoint.
+-   `LabelType::HTML_URL = 'html_url'` — new enum case for HTML label URLs. Added to `label()` method.
+-   14 new Pest tests: `getRates()` (commune-level mapping, price type mapping, empty response, parameter tolerance), `getLabel()` (success, request body, failed tracking number, Bearer header presence/absence), `createOrder()` with auto-resolved city UUID (auto-resolve, explicit override, district missing, unknown wilaya code), `LabelType::HTML_URL` value and label.
+
+---
+
 ## [1.0.0] - 2026-03-22
 
 ### Added

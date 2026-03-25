@@ -13,17 +13,26 @@ enum LabelType: string
     case PDF_BASE64 = 'pdf_base64';
 
     /** The label is returned as a URL pointing to a PDF file. */
-    case PDF_URL = 'pdf_url';
+    case PDF_URL    = 'pdf_url';
 
     /** The label is returned as a URL pointing to an image. */
-    case IMAGE_URL = 'image_url';
+    case IMAGE_URL  = 'image_url';
+
+    /**
+     * The label is returned as a URL pointing to an HTML file.
+     *
+     * Used by ZR Express NEW: labels are uploaded to Azure Blob Storage
+     * as individual HTML files with time-limited SAS URLs.
+     */
+    case HTML_URL   = 'html_url';
 
     public function label(): string
     {
         return match ($this) {
             self::PDF_BASE64 => 'PDF (Base64 encoded)',
-            self::PDF_URL => 'PDF (URL)',
-            self::IMAGE_URL => 'Image (URL)',
+            self::PDF_URL    => 'PDF (URL)',
+            self::IMAGE_URL  => 'Image (URL)',
+            self::HTML_URL   => 'HTML (URL)',
         };
     }
 }

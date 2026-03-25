@@ -104,10 +104,10 @@ describe('ProviderMetadata DTO', function (): void {
             ->and($meta->website)->toBe('https://conexlog-dz.com/');
     });
 
-    it('allMetadata() returns entries for all 29 providers', function (): void {
+    it('allMetadata() returns entries for all 30 providers', function (): void {
         $all = app(CourierManager::class)->allMetadata();
 
-        expect($all)->toHaveCount(29)
+        expect($all)->toHaveCount(30)
             ->and($all)->toHaveKey('yalidine')
             ->and($all)->toHaveKey('dhd')
             ->and($all)->toHaveKey('conexlog')

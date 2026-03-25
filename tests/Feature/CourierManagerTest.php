@@ -98,8 +98,8 @@ describe('CourierManager', function (): void {
             ->and($meta->website)->toBe('https://dhd-dz.com/');
     });
 
-    it('allMetadata() returns 29 entries', function (): void {
-        expect(Courier::allMetadata())->toHaveCount(29);
+    it('allMetadata() returns 30 entries', function (): void {
+        expect(Courier::allMetadata())->toHaveCount(30);
     });
 
     it('adapter metadata() delegates to Provider enum', function (): void {

@@ -18,7 +18,7 @@ Every Algerian courier has a different API shape, different field names, and dif
 
 ---
 
-## Supported Providers — 29 total
+## Supported Providers — 30 total
 
 ### Yalidine engine
 
@@ -45,6 +45,12 @@ Every Algerian courier has a different API shape, different field names, and dif
 | Provider      | Enum              | Base URL            |
 | ------------- | ----------------- | ------------------- |
 | Zimou Express | `Provider::ZIMOU` | `zimou.express/api` |
+
+### ZR Express NEW (standalone — new platform)
+
+| Provider       | Enum                      | Base URL            |
+| -------------- | ------------------------- | ------------------- |
+| ZR Express NEW | `Provider::ZREXPRESS_NEW` | `api.zrexpress.app` |
 
 ### Ecotrack engine — 23 providers sharing one API surface
 
@@ -78,22 +84,25 @@ Every Algerian courier has a different API shape, different field names, and dif
 
 ### Supported Methods
 
-| Method                            | Yalidine / Yalitec | Maystro | Procolis / ZR Express | Zimou Express | Ecotrack engine (all 23) |
-| --------------------------------- | :----------------: | :-----: | :-------------------: | :-----------: | :----------------------: |
-| `testCredentials()`               |         ✅         |   ✅    |          ✅           |      ✅       |            ✅            |
-| `metadata()`                      |         ✅         |   ✅    |          ✅           |      ✅       |            ✅            |
-| `getRates()`                      |       ✅ \*        |   ❌    |          ✅           |      ✅       |            ✅            |
-| `getCreateOrderValidationRules()` |         ✅         |   ✅    |          ✅           |      ✅       |            ✅            |
-| `createOrder()`                   |         ✅         |   ✅    |          ✅           |      ✅       |            ✅            |
-| `getOrder()`                      |         ✅         |   ✅    |          ✅           |    ✅ \*\*    |            ✅            |
-| `cancelOrder()`                   |         ➖         |   ➖    |          ➖           |      ➖       |            ➖            |
-| `getLabel()`                      |         ✅         |   ✅    |          ❌           |      ✅       |            ✅            |
-| `createProduct()` \*\*\*          |         ❌         |   ✅    |          ❌           |      ❌       |            ❌            |
+| Method                            | Yalidine / Yalitec | Maystro | Procolis / ZR Express | ZR Express NEW | Zimou Express | Ecotrack engine (all 23) |
+| --------------------------------- | :----------------: | :-----: | :-------------------: | :------------: | :-----------: | :----------------------: |
+| `testCredentials()`               |         ✅         |   ✅    |          ✅           |       ✅       |      ✅       |            ✅            |
+| `metadata()`                      |         ✅         |   ✅    |          ✅           |       ✅       |      ✅       |            ✅            |
+| `getRates()`                      |       ✅ \*        |   ❌    |          ✅           |      ✅‡       |      ❌       |            ✅            |
+| `getCreateOrderValidationRules()` |         ✅         |   ✅    |          ✅           |       ✅       |      ✅       |            ✅            |
+| `createOrder()`                   |         ✅         |   ✅    |          ✅           |       ✅       |      ✅       |            ✅            |
+| `getOrder()`                      |         ✅         |   ✅    |          ✅           |    ✅ \*\*     |   ✅ \*\*\*   |            ✅            |
+| `cancelOrder()`                   |         ➖         |   ➖    |          ➖           |       ➖       |      ✅       |            ➖            |
+| `getLabel()`                      |         ✅         |   ✅    |          ❌           |       ✅       |      ✅       |            ✅            |
+| `createProduct()` +               |         ❌         |   ✅    |          ❌           |       ❌       |      ❌       |            ❌            |
 
 > \* Yalidine `getRates()` requires `$fromWilayaId`.  
 > \*\* `getOrder()` accepts either the **Zimou integer package ID** or the **`tracking_code`** string.  
-> \*\*\* Maystro-only method, not part of the `ProviderAdapter` contract — type-hint `MaystroAdapter` directly.  
-> ➖ = planned / unknown support.
+> \*\*\* ZR Express NEW `getOrder()` accepts either a **UUID parcel ID** or a **tracking number** (e.g. `16-JUKYSI-ZR`). `cancelOrder()` also supported (maps to `DELETE /parcels/{id}`).
+>
+> -   Maystro-only method, not part of the `ProviderAdapter` contract — type-hint `MaystroAdapter` directly.  
+>     ➖ = planned / unknown support.
+>     ‡ ZR Express NEW `getOrder()` accepts UUID or tracking number. `cancelOrder()` supported. `getLabel()` returns `LabelType::HTML_URL` (Azure Blob SAS URL to an HTML label file — SAS tokens expire, do not cache). `getRates()` returns commune-level prices; `RateData::$toWilayaId` is `0` for all entries.
 
 ---
 
@@ -135,6 +144,12 @@ PROCOLIS_ID=your-id
 PROCOLIS_TOKEN=your-token
 ZREXPRESS_ID=your-id
 ZREXPRESS_TOKEN=your-token
+
+# ZR Express NEW (new platform — NOT the legacy Procolis one)
+ZREXPRESS_NEW_TENANT_ID=your-tenant-uuid
+ZREXPRESS_NEW_API_KEY=your-api-secret-key
+# Optional — only needed if getLabel() returns 401 with X-Api-Key alone:
+ZREXPRESS_NEW_BEARER_TOKEN=your-jwt-token
 
 # Zimou Express
 ZIMOU_API_TOKEN=your-bearer-token
@@ -221,6 +236,35 @@ if ($order->status->isTerminal()) { /* stop polling */ }
 // Access the partner carrier details (not always available)
 echo $order->raw['tracking_partner_company'];        // "Yalidine"
 echo $order->raw['delivery_company_tracking_code'];  // "YALI-99999"
+```
+
+### ZR Express NEW — territory UUIDs
+
+ZR Express NEW identifies delivery addresses by UUID territory IDs (not integer wilaya codes).
+
+The `cityTerritoryId` (wilaya level) is now **auto-resolved** from `toWilayaId` using a built-in static map covering all 54 supported wilayas. You only need to supply the district UUID:
+
+```php
+new CreateOrderData(
+    toWilayaId: 9,   // Blida → auto-resolved to ZR Express territory UUID
+    notes: 'zr_district:8d0b6cd9-7712-47d2-9ea4-460246494c32',
+    // ...
+)
+```
+
+If you need to override the city UUID explicitly, the full format still works:
+`"zr_city:{uuid}|zr_district:{uuid}|optional note"`
+
+### ZR Express NEW — cancelOrder
+
+`cancelOrder()` is fully supported (maps to `DELETE /api/v1/parcels/{id}`):
+
+```php
+// Pass the UUID parcel ID (from $order->raw['id'])
+Courier::provider(Provider::ZREXPRESS_NEW)->cancelOrder('8c1a4c53-9d1a-4bb0-9b44-e9c0c2f90111');
+
+// Or pass a tracking number — the adapter resolves the UUID internally
+Courier::provider(Provider::ZREXPRESS_NEW)->cancelOrder('16-JUKYSI-ZR');
 ```
 
 ### Access provider metadata (no API call needed)

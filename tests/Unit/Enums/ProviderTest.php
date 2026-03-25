@@ -11,8 +11,8 @@ use Uften\Courier\Enums\Provider;
 
 describe('Provider enum', function (): void {
 
-    it('has 29 total cases', function (): void {
-        expect(Provider::cases())->toHaveCount(29);
+    it('has 30 total cases', function (): void {
+        expect(Provider::cases())->toHaveCount(30);
     });
 
     it('has correct backing values for key providers', function (): void {
@@ -21,6 +21,7 @@ describe('Provider enum', function (): void {
             ->and(Provider::MAYSTRO->value)->toBe('maystro')
             ->and(Provider::PROCOLIS->value)->toBe('procolis')
             ->and(Provider::ZREXPRESS->value)->toBe('zrexpress')
+            ->and(Provider::ZREXPRESS_NEW->value)->toBe('zrexpress_new')
             ->and(Provider::ECOTRACK->value)->toBe('ecotrack')
             ->and(Provider::DHD->value)->toBe('dhd')
             ->and(Provider::CONEXLOG->value)->toBe('conexlog');
@@ -58,7 +59,11 @@ describe('Provider enum', function (): void {
         expect($provider->baseUrl())
             ->toBeString()
             ->toStartWith('https://');
-    })->with(Provider::cases());
+    })->with(function () {
+        foreach (Provider::cases() as $case) {
+            yield $case->name => [$case];
+        }
+    });
 
     it('flags only Procolis and ZRExpress as requiring an API id', function (): void {
         expect(Provider::PROCOLIS->requiresApiId())->toBeTrue()
@@ -74,7 +79,11 @@ describe('Provider enum', function (): void {
             ->and($meta->name)->not->toBeEmpty()
             ->and($meta->title)->not->toBeEmpty()
             ->and($meta->website)->toStartWith('https://');
-    })->with(Provider::cases());
+    })->with(function () {
+        foreach (Provider::cases() as $case) {
+            yield $case->name => [$case];
+        }
+    });
 
     it('label() returns the metadata title', function (): void {
         expect(Provider::YALIDINE->label())->toBe('Yalidine')

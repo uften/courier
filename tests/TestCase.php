@@ -43,6 +43,12 @@ abstract class TestCase extends OrchestraTestCase
             ]);
         }
 
+        // ZR Express NEW
+        $app['config']->set('courier.providers.zrexpress_new', [
+            'tenant_id' => 'test-tenant-uuid',
+            'api_key' => 'test-api-key',
+        ]);
+
         // Procolis-engine providers
         foreach ([Provider::PROCOLIS, Provider::ZREXPRESS] as $provider) {
             $app['config']->set("courier.providers.{$provider->value}", [

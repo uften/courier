@@ -9,10 +9,12 @@ use Uften\Courier\Adapters\MaystroAdapter;
 use Uften\Courier\Adapters\ProcolisAdapter;
 use Uften\Courier\Adapters\YalidineAdapter;
 use Uften\Courier\Adapters\ZimouAdapter;
+use Uften\Courier\Adapters\ZrExpressNewAdapter;
 use Uften\Courier\Contracts\ProviderAdapter;
 use Uften\Courier\Data\Credentials\ProcolisCredentials;
 use Uften\Courier\Data\Credentials\TokenCredentials;
 use Uften\Courier\Data\Credentials\YalidineCredentials;
+use Uften\Courier\Data\Credentials\ZrExpressNewCredentials;
 use Uften\Courier\Data\ProviderMetadata;
 use Uften\Courier\Enums\Provider;
 use Uften\Courier\Exceptions\InvalidCredentialsConfigException;
@@ -152,6 +154,11 @@ final class CourierManager
                 credentials: $this->buildTokenCredentials($provider, $creds),
             ),
 
+            // ZR Express NEW platform (standalone)
+            $provider === Provider::ZREXPRESS_NEW => new ZrExpressNewAdapter(
+                credentials: $this->buildZrExpressNewCredentials($provider, $creds),
+            ),
+
             // Ecotrack engine — generic base + all 22 branded sub-providers
             $provider->isEcotrackEngine() => new EcotrackAdapter(
                 credentials: $this->buildTokenCredentials($provider, $creds),
@@ -217,6 +224,16 @@ final class CourierManager
     {
         try {
             return ProcolisCredentials::fromArray($creds);
+        } catch (\InvalidArgumentException $e) {
+            throw new InvalidCredentialsConfigException($provider, $e->getMessage(), $e);
+        }
+    }
+
+    /** @param array<string, string> $creds */
+    private function buildZrExpressNewCredentials(Provider $provider, array $creds): ZrExpressNewCredentials
+    {
+        try {
+            return ZrExpressNewCredentials::fromArray($creds);
         } catch (\InvalidArgumentException $e) {
             throw new InvalidCredentialsConfigException($provider, $e->getMessage(), $e);
         }

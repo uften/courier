@@ -61,6 +61,14 @@ return [
         ],
 
         // -----------------------------------------------------------------------
+        // ZR Express NEW platform (api.zrexpress.app — NOT the legacy Procolis one)
+        // -----------------------------------------------------------------------
+        'zrexpress_new' => [
+            'tenant_id' => env('ZREXPRESS_NEW_TENANT_ID'),
+            'api_key' => env('ZREXPRESS_NEW_API_KEY'),
+        ],
+
+        // -----------------------------------------------------------------------
         // Zimou Express (delivery router — dispatches to partner carriers)
         // -----------------------------------------------------------------------
         'zimou' => [
