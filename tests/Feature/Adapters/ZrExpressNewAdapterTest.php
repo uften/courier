@@ -8,6 +8,7 @@ use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Response;
 use Uften\Courier\Adapters\ZrExpressNewAdapter;
+use Uften\Courier\CourierManager;
 use Uften\Courier\Data\CreateOrderData;
 use Uften\Courier\Data\Credentials\ZrExpressNewCredentials;
 use Uften\Courier\Enums\DeliveryType;
@@ -24,14 +25,14 @@ use Uften\Courier\Exceptions\OrderNotFoundException;
 function zrnAdapter(array $responses): ZrExpressNewAdapter
 {
     $client = new Client([
-        'handler'     => HandlerStack::create(new MockHandler($responses)),
+        'handler' => HandlerStack::create(new MockHandler($responses)),
         'http_errors' => false,
     ]);
 
     return new ZrExpressNewAdapter(
         credentials: new ZrExpressNewCredentials(
             tenantId: '5ab82e7e-8f1b-4a9b-95ea-be0bc37ffaef',
-            apiKey:   'test-api-key',
+            apiKey: 'test-api-key',
         ),
         httpClient: $client,
     );
@@ -40,10 +41,10 @@ function zrnAdapter(array $responses): ZrExpressNewAdapter
 function zrnAdapterWithHistory(array $responses): array
 {
     $history = [];
-    $mock    = new MockHandler($responses);
-    $stack   = HandlerStack::create($mock);
+    $mock = new MockHandler($responses);
+    $stack = HandlerStack::create($mock);
     $stack->push(Middleware::history($history));
-    $client  = new Client(['handler' => $stack, 'http_errors' => false]);
+    $client = new Client(['handler' => $stack, 'http_errors' => false]);
 
     return [
         'adapter' => new ZrExpressNewAdapter(
@@ -57,42 +58,42 @@ function zrnAdapterWithHistory(array $responses): array
 function parcelFixture(array $overrides = []): array
 {
     return array_merge([
-        'id'              => '8c1a4c53-9d1a-4bb0-9b44-e9c0c2f90111',
-        'externalId'      => 'MY-ORD-001',
-        'trackingNumber'  => '16-JUKYSI-ZR',
-        'amount'          => 4500.0,
-        'deliveryPrice'   => 400.0,
-        'deliveryType'    => 'Home',
-        'createdAt'       => '2025-11-21T17:16:10.183Z',
+        'id' => '8c1a4c53-9d1a-4bb0-9b44-e9c0c2f90111',
+        'externalId' => 'MY-ORD-001',
+        'trackingNumber' => '16-JUKYSI-ZR',
+        'amount' => 4500.0,
+        'deliveryPrice' => 400.0,
+        'deliveryType' => 'Home',
+        'createdAt' => '2025-11-21T17:16:10.183Z',
         'lastStateUpdateAt' => '2025-11-21T17:16:10.183Z',
         'customer' => [
             'customerId' => 'd212d2e9-5d6a-4ae2-8fb7-9c3e01b7c111',
-            'name'       => 'Ahmed Benali',
-            'phone'      => ['number1' => '+213550112233', 'number2' => null, 'number3' => null],
+            'name' => 'Ahmed Benali',
+            'phone' => ['number1' => '+213550112233', 'number2' => null, 'number3' => null],
         ],
         'deliveryAddress' => [
-            'street'              => '24 Rue Didouche Mourad',
-            'city'                => 'Algiers',
-            'cityTerritoryId'     => 'd134c182-7dac-4655-9d9b-bbdb62aa2ec4',
-            'cityTerritoryCode'   => 16,
-            'district'            => "Sidi M'Hamed",
+            'street' => '24 Rue Didouche Mourad',
+            'city' => 'Algiers',
+            'cityTerritoryId' => 'd134c182-7dac-4655-9d9b-bbdb62aa2ec4',
+            'cityTerritoryCode' => 16,
+            'district' => "Sidi M'Hamed",
             'districtTerritoryId' => 'e88130fa-62ae-4505-80a4-5a5c0a912313',
-            'postalCode'          => '16000',
-            'country'             => 'Algeria',
-            'hubId'               => null,
-            'hubName'             => null,
+            'postalCode' => '16000',
+            'country' => 'Algeria',
+            'hubId' => null,
+            'hubName' => null,
         ],
         'state' => [
-            'id'          => '95bc5a68-03f4-497d-8c96-81c4d0ff14ae',
-            'name'        => 'commande_recue',
+            'id' => '95bc5a68-03f4-497d-8c96-81c4d0ff14ae',
+            'name' => 'commande_recue',
             'description' => 'Commande reçue',
-            'isBlocking'  => false,
-            'isLocked'    => false,
-            'visibleFor'  => 1,
-            'editableBy'  => 2,
-            'color'       => '#787878',
+            'isBlocking' => false,
+            'isLocked' => false,
+            'visibleFor' => 1,
+            'editableBy' => 2,
+            'color' => '#787878',
         ],
-        'situation'   => null,
+        'situation' => null,
         'description' => 'Smartphone Xiaomi Redmi Note 12',
         'orderedProducts' => [
             ['productName' => 'Smartphone Xiaomi', 'unitPrice' => 4500, 'quantity' => 1],
@@ -105,41 +106,41 @@ function ratesFixture(): array
     return [
         'rates' => [
             [
-                'toTerritoryId'    => 'd134c182-7dac-4655-9d9b-bbdb62aa2ec4',
-                'toTerritoryCode'  => 16,
-                'toTerritoryName'  => 'Alger',
+                'toTerritoryId' => 'd134c182-7dac-4655-9d9b-bbdb62aa2ec4',
+                'toTerritoryCode' => 16,
+                'toTerritoryName' => 'Alger',
                 'toTerritoryLevel' => 'wilaya',
-                'deliveryPrices'   => [
+                'deliveryPrices' => [
                     ['deliveryType' => 'home',         'price' => 400, 'discountedPrice' => null],
                     ['deliveryType' => 'pickup-point', 'price' => 350, 'discountedPrice' => null],
                     ['deliveryType' => 'return',       'price' => 200, 'discountedPrice' => null],
                 ],
             ],
             [
-                'toTerritoryId'    => 'a7e764cf-e9ca-4c1f-8232-89852d102aec',
-                'toTerritoryCode'  => 9,
-                'toTerritoryName'  => 'Blida',
+                'toTerritoryId' => 'a7e764cf-e9ca-4c1f-8232-89852d102aec',
+                'toTerritoryCode' => 9,
+                'toTerritoryName' => 'Blida',
                 'toTerritoryLevel' => 'wilaya',
-                'deliveryPrices'   => [
+                'deliveryPrices' => [
                     ['deliveryType' => 'home',         'price' => 450, 'discountedPrice' => null],
                     ['deliveryType' => 'pickup-point', 'price' => 380, 'discountedPrice' => null],
                 ],
             ],
             // Commune-level — should be SKIPPED
             [
-                'toTerritoryId'    => '08a1631f-1949-462b-94a6-01f212d869e1',
-                'toTerritoryCode'  => null,
-                'toTerritoryName'  => 'Ouled Yaich',
+                'toTerritoryId' => '08a1631f-1949-462b-94a6-01f212d869e1',
+                'toTerritoryCode' => null,
+                'toTerritoryName' => 'Ouled Yaich',
                 'toTerritoryLevel' => 'commune',
-                'deliveryPrices'   => [['deliveryType' => 'home', 'price' => 400]],
+                'deliveryPrices' => [['deliveryType' => 'home', 'price' => 400]],
             ],
             // Unknown-level — should be SKIPPED
             [
-                'toTerritoryId'    => 'ffffffff-ffff-ffff-ffff-ffffffffffff',
-                'toTerritoryCode'  => null,
-                'toTerritoryName'  => 'Unknown',
+                'toTerritoryId' => 'ffffffff-ffff-ffff-ffff-ffffffffffff',
+                'toTerritoryCode' => null,
+                'toTerritoryName' => 'Unknown',
                 'toTerritoryLevel' => 'Unknown',
-                'deliveryPrices'   => [],
+                'deliveryPrices' => [],
             ],
         ],
     ];
@@ -227,7 +228,7 @@ describe('ZrExpressNewAdapter — createOrder', function (): void {
 
     it('throws CourierException when district UUID is missing from notes', function (): void {
         $adapter = zrnAdapter([]);
-        expect(fn() => $adapter->createOrder(new CreateOrderData(
+        expect(fn () => $adapter->createOrder(new CreateOrderData(
             orderId: 'X', firstName: 'A', lastName: 'B', phone: '+213550000000',
             address: 'A', toWilayaId: 16, toCommune: 'Alger',
             productDescription: 'Item', price: 500.0, notes: null,
@@ -236,7 +237,7 @@ describe('ZrExpressNewAdapter — createOrder', function (): void {
 
     it('throws CourierException when toWilayaId is not in the map and zr_city is absent', function (): void {
         $adapter = zrnAdapter([]);
-        expect(fn() => $adapter->createOrder(new CreateOrderData(
+        expect(fn () => $adapter->createOrder(new CreateOrderData(
             orderId: 'X', firstName: 'A', lastName: 'B', phone: '+213550000000',
             address: 'A', toWilayaId: 99, toCommune: 'Unknown',
             productDescription: 'Item', price: 500.0,
@@ -307,13 +308,13 @@ describe('ZrExpressNewAdapter — createOrder', function (): void {
             notes: 'zr_district:D-UUID',
         ));
         $body = json_decode((string) $ctx['history'][0]['request']->getBody(), true);
-        $p    = $body['orderedProducts'][0];
+        $p = $body['orderedProducts'][0];
         expect($p['length'])->toEqual(60.0)->and($p['width'])->toEqual(70.0)->and($p['height'])->toEqual(180.0);
     });
 
     it('throws CourierException when API returns no id', function (): void {
         $adapter = zrnAdapter([new Response(201, [], json_encode(['error' => 'bad']))]);
-        expect(fn() => $adapter->createOrder(new CreateOrderData(
+        expect(fn () => $adapter->createOrder(new CreateOrderData(
             orderId: 'E', firstName: 'A', lastName: 'B', phone: '+213550000000',
             address: 'A', toWilayaId: 16, toCommune: 'Alger',
             productDescription: 'Item', price: 500.0, notes: 'zr_district:D',
@@ -349,18 +350,18 @@ describe('ZrExpressNewAdapter — getOrder', function (): void {
         $fixture = parcelFixture();
         unset($fixture['deliveryAddress']['cityTerritoryCode']);
         $adapter = zrnAdapter([new Response(200, [], json_encode($fixture))]);
-        $order   = $adapter->getOrder('16-JUKYSI-ZR');
+        $order = $adapter->getOrder('16-JUKYSI-ZR');
         expect($order->toWilayaId)->toBe(16); // Resolved from cityTerritoryId UUID
     });
 
     it('throws OrderNotFoundException on 404', function (): void {
         $adapter = zrnAdapter([new Response(404, [], json_encode(['title' => 'Parcels.NotFound', 'status' => 404]))]);
-        expect(fn() => $adapter->getOrder('GHOST'))->toThrow(OrderNotFoundException::class);
+        expect(fn () => $adapter->getOrder('GHOST'))->toThrow(OrderNotFoundException::class);
     });
 
     it('throws OrderNotFoundException on empty response', function (): void {
         $adapter = zrnAdapter([new Response(200, [], '{}')]);
-        expect(fn() => $adapter->getOrder('EMPTY'))->toThrow(OrderNotFoundException::class);
+        expect(fn () => $adapter->getOrder('EMPTY'))->toThrow(OrderNotFoundException::class);
     });
 
 });
@@ -385,10 +386,10 @@ describe('ZrExpressNewAdapter — cancelOrder', function (): void {
 describe('ZrExpressNewAdapter — getLabel', function (): void {
 
     it('returns HTML_URL label on success', function (): void {
-        $sasUrl  = 'https://zrexpressstorage.blob.core.windows.net/labels/bordereau_16-JUKYSI-ZR_abc123.html?sv=2021';
+        $sasUrl = 'https://zrexpressstorage.blob.core.windows.net/labels/bordereau_16-JUKYSI-ZR_abc123.html?sv=2021';
         $adapter = zrnAdapter([
             new Response(200, [], json_encode([
-                'parcelLabelFiles'      => [['trackingNumber' => '16-JUKYSI-ZR', 'fileUrl' => $sasUrl]],
+                'parcelLabelFiles' => [['trackingNumber' => '16-JUKYSI-ZR', 'fileUrl' => $sasUrl]],
                 'failedTrackingNumbers' => [],
             ])),
         ]);
@@ -403,7 +404,7 @@ describe('ZrExpressNewAdapter — getLabel', function (): void {
     it('sends Authorization: Bearer header for the label endpoint', function (): void {
         $ctx = zrnAdapterWithHistory([
             new Response(200, [], json_encode([
-                'parcelLabelFiles'      => [['trackingNumber' => 'TRK', 'fileUrl' => 'https://url']],
+                'parcelLabelFiles' => [['trackingNumber' => 'TRK', 'fileUrl' => 'https://url']],
                 'failedTrackingNumbers' => [],
             ])),
         ]);
@@ -416,11 +417,11 @@ describe('ZrExpressNewAdapter — getLabel', function (): void {
     it('throws CourierException when tracking number is in failedTrackingNumbers', function (): void {
         $adapter = zrnAdapter([
             new Response(200, [], json_encode([
-                'parcelLabelFiles'      => [],
+                'parcelLabelFiles' => [],
                 'failedTrackingNumbers' => ['GHOST'],
             ])),
         ]);
-        expect(fn() => $adapter->getLabel('GHOST'))
+        expect(fn () => $adapter->getLabel('GHOST'))
             ->toThrow(CourierException::class, 'not found or territory data missing');
     });
 
@@ -428,17 +429,17 @@ describe('ZrExpressNewAdapter — getLabel', function (): void {
         $adapter = zrnAdapter([
             new Response(200, [], json_encode(['parcelLabelFiles' => [], 'failedTrackingNumbers' => []])),
         ]);
-        expect(fn() => $adapter->getLabel('TRK'))->toThrow(CourierException::class, 'no label');
+        expect(fn () => $adapter->getLabel('TRK'))->toThrow(CourierException::class, 'no label');
     });
 
     it('throws CourierException when fileUrl is blank', function (): void {
         $adapter = zrnAdapter([
             new Response(200, [], json_encode([
-                'parcelLabelFiles'      => [['trackingNumber' => 'TRK', 'fileUrl' => '']],
+                'parcelLabelFiles' => [['trackingNumber' => 'TRK', 'fileUrl' => '']],
                 'failedTrackingNumbers' => [],
             ])),
         ]);
-        expect(fn() => $adapter->getLabel('TRK'))->toThrow(CourierException::class, 'empty label URL');
+        expect(fn () => $adapter->getLabel('TRK'))->toThrow(CourierException::class, 'empty label URL');
     });
 
 });
@@ -447,7 +448,7 @@ describe('ZrExpressNewAdapter — getRates', function (): void {
 
     it('returns only wilaya-level RateData, skipping commune and Unknown levels', function (): void {
         $adapter = zrnAdapter([new Response(200, [], json_encode(ratesFixture()))]);
-        $rates   = $adapter->getRates();
+        $rates = $adapter->getRates();
 
         expect($rates)->toHaveCount(2)
             ->and($rates[0]->toWilayaId)->toBe(16)
@@ -462,25 +463,25 @@ describe('ZrExpressNewAdapter — getRates', function (): void {
 
     it('filters by toWilayaId when provided', function (): void {
         $adapter = zrnAdapter([new Response(200, [], json_encode(ratesFixture()))]);
-        $rates   = $adapter->getRates(toWilayaId: 9);
+        $rates = $adapter->getRates(toWilayaId: 9);
         expect($rates)->toHaveCount(1)->and($rates[0]->toWilayaId)->toBe(9);
     });
 
     it('resolves wilaya code from UUID when toTerritoryCode is null', function (): void {
         $ratesNoCode = [
             'rates' => [[
-                'toTerritoryId'    => 'e9a1e9cf-8475-4768-94cc-0888d094ff47', // Constantine=25
-                'toTerritoryCode'  => null,
-                'toTerritoryName'  => 'Constantine',
+                'toTerritoryId' => 'e9a1e9cf-8475-4768-94cc-0888d094ff47', // Constantine=25
+                'toTerritoryCode' => null,
+                'toTerritoryName' => 'Constantine',
                 'toTerritoryLevel' => 'wilaya',
-                'deliveryPrices'   => [
+                'deliveryPrices' => [
                     ['deliveryType' => 'home',         'price' => 500],
                     ['deliveryType' => 'pickup-point', 'price' => 400],
                 ],
             ]],
         ];
         $adapter = zrnAdapter([new Response(200, [], json_encode($ratesNoCode))]);
-        $rates   = $adapter->getRates();
+        $rates = $adapter->getRates();
         expect($rates)->toHaveCount(1)->and($rates[0]->toWilayaId)->toBe(25);
     });
 
@@ -581,13 +582,13 @@ describe('ZrExpressNewAdapter — ZrExpressNewCredentials DTO', function (): voi
     });
 
     it('throws on missing tenant_id', function (): void {
-        expect(fn() => ZrExpressNewCredentials::fromArray(['api_key' => 'k']))
-            ->toThrow(\InvalidArgumentException::class, 'tenant_id');
+        expect(fn () => ZrExpressNewCredentials::fromArray(['api_key' => 'k']))
+            ->toThrow(InvalidArgumentException::class, 'tenant_id');
     });
 
     it('throws on missing api_key', function (): void {
-        expect(fn() => ZrExpressNewCredentials::fromArray(['tenant_id' => 't']))
-            ->toThrow(\InvalidArgumentException::class, 'api_key');
+        expect(fn () => ZrExpressNewCredentials::fromArray(['tenant_id' => 't']))
+            ->toThrow(InvalidArgumentException::class, 'api_key');
     });
 
 });
@@ -595,7 +596,7 @@ describe('ZrExpressNewAdapter — ZrExpressNewCredentials DTO', function (): voi
 describe('ZrExpressNewAdapter — CourierManager integration', function (): void {
 
     it('resolves ZrExpressNewAdapter from the manager', function (): void {
-        $adapter = app(\Uften\Courier\CourierManager::class)->provider(Provider::ZREXPRESS_NEW);
+        $adapter = app(CourierManager::class)->provider(Provider::ZREXPRESS_NEW);
         expect($adapter)->toBeInstanceOf(ZrExpressNewAdapter::class);
     });
 

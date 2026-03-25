@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace Uften\Courier\Enums;
 
+use Uften\Courier\Adapters\EcotrackAdapter;
+use Uften\Courier\Adapters\MaystroAdapter;
+use Uften\Courier\Adapters\ProcolisAdapter;
+use Uften\Courier\Adapters\YalidineAdapter;
 use Uften\Courier\Data\ProviderMetadata;
 
 /**
@@ -20,7 +24,7 @@ enum Provider: string
     // -------------------------------------------------------------------------
     case YALIDINE = 'yalidine';
     /** Yalitec uses the identical Yalidine API engine with a different subdomain. */
-    case YALITEC  = 'yalitec';
+    case YALITEC = 'yalitec';
 
     // -------------------------------------------------------------------------
     // Maystro (standalone engine)
@@ -30,7 +34,7 @@ enum Provider: string
     // -------------------------------------------------------------------------
     // Procolis engine (legacy — 2 providers)
     // -------------------------------------------------------------------------
-    case PROCOLIS  = 'procolis';
+    case PROCOLIS = 'procolis';
     case ZREXPRESS = 'zrexpress';
 
     // -------------------------------------------------------------------------
@@ -46,29 +50,29 @@ enum Provider: string
     // -------------------------------------------------------------------------
     // Ecotrack engine — generic base + 22 branded sub-providers
     // -------------------------------------------------------------------------
-    case ECOTRACK        = 'ecotrack';
-    case ANDERSON        = 'anderson';
-    case AREEX           = 'areex';
-    case BA_CONSULT      = 'ba_consult';
-    case CONEXLOG        = 'conexlog';
-    case COYOTE_EXPRESS  = 'coyote_express';
-    case DHD             = 'dhd';
-    case DISTAZERO       = 'distazero';
-    case E48HR           = 'e48hr';
-    case FRETDIRECT      = 'fretdirect';
-    case GOLIVRI         = 'golivri';
-    case MONO_HUB        = 'mono_hub';
-    case MSM_GO          = 'msm_go';
-    case NEGMAR_EXPRESS  = 'negmar_express';
-    case PACKERS         = 'packers';
-    case PREST           = 'prest';
-    case RB_LIVRAISON    = 'rb_livraison';
-    case REX_LIVRAISON   = 'rex_livraison';
+    case ECOTRACK = 'ecotrack';
+    case ANDERSON = 'anderson';
+    case AREEX = 'areex';
+    case BA_CONSULT = 'ba_consult';
+    case CONEXLOG = 'conexlog';
+    case COYOTE_EXPRESS = 'coyote_express';
+    case DHD = 'dhd';
+    case DISTAZERO = 'distazero';
+    case E48HR = 'e48hr';
+    case FRETDIRECT = 'fretdirect';
+    case GOLIVRI = 'golivri';
+    case MONO_HUB = 'mono_hub';
+    case MSM_GO = 'msm_go';
+    case NEGMAR_EXPRESS = 'negmar_express';
+    case PACKERS = 'packers';
+    case PREST = 'prest';
+    case RB_LIVRAISON = 'rb_livraison';
+    case REX_LIVRAISON = 'rex_livraison';
     case ROCKET_DELIVERY = 'rocket_delivery';
-    case SALVA_DELIVERY  = 'salva_delivery';
-    case SPEED_DELIVERY  = 'speed_delivery';
-    case TSL_EXPRESS     = 'tsl_express';
-    case WORLDEXPRESS    = 'worldexpress';
+    case SALVA_DELIVERY = 'salva_delivery';
+    case SPEED_DELIVERY = 'speed_delivery';
+    case TSL_EXPRESS = 'tsl_express';
+    case WORLDEXPRESS = 'worldexpress';
 
     // =========================================================================
     // Identity helpers
@@ -82,10 +86,10 @@ enum Provider: string
     public function adapterClass(): string
     {
         return match ($this) {
-            self::YALIDINE, self::YALITEC   => \Uften\Courier\Adapters\YalidineAdapter::class,
-            self::MAYSTRO                   => \Uften\Courier\Adapters\MaystroAdapter::class,
-            self::PROCOLIS, self::ZREXPRESS => \Uften\Courier\Adapters\ProcolisAdapter::class,
-            default                         => \Uften\Courier\Adapters\EcotrackAdapter::class,
+            self::YALIDINE, self::YALITEC => YalidineAdapter::class,
+            self::MAYSTRO => MaystroAdapter::class,
+            self::PROCOLIS, self::ZREXPRESS => ProcolisAdapter::class,
+            default => EcotrackAdapter::class,
         };
     }
 
@@ -99,7 +103,7 @@ enum Provider: string
 
     public function isEcotrackEngine(): bool
     {
-        return !$this->isYalidineEngine()
+        return ! $this->isYalidineEngine()
             && $this !== self::MAYSTRO
             && $this !== self::PROCOLIS
             && $this !== self::ZREXPRESS
@@ -122,36 +126,36 @@ enum Provider: string
     public function baseUrl(): string
     {
         return match ($this) {
-            self::YALIDINE       => 'https://api.yalidine.app',
-            self::YALITEC        => 'https://api.yalitec.me',
-            self::MAYSTRO        => 'https://backend.maystro-delivery.com/api',
+            self::YALIDINE => 'https://api.yalidine.app',
+            self::YALITEC => 'https://api.yalitec.me',
+            self::MAYSTRO => 'https://backend.maystro-delivery.com/api',
             self::PROCOLIS,
-            self::ZREXPRESS      => 'https://procolis.com/api_v1',
-            self::ZIMOU          => 'https://zimou.express/api',
-            self::ZREXPRESS_NEW  => 'https://api.zrexpress.app',
-            self::ECOTRACK       => 'https://ecotrack.dz',
-            self::ANDERSON       => 'https://anderson.ecotrack.dz',
-            self::AREEX          => 'https://areex.ecotrack.dz',
-            self::BA_CONSULT     => 'https://bacexpress.ecotrack.dz',
-            self::CONEXLOG       => 'https://app.conexlog-dz.com',
+            self::ZREXPRESS => 'https://procolis.com/api_v1',
+            self::ZIMOU => 'https://zimou.express/api',
+            self::ZREXPRESS_NEW => 'https://api.zrexpress.app',
+            self::ECOTRACK => 'https://ecotrack.dz',
+            self::ANDERSON => 'https://anderson.ecotrack.dz',
+            self::AREEX => 'https://areex.ecotrack.dz',
+            self::BA_CONSULT => 'https://bacexpress.ecotrack.dz',
+            self::CONEXLOG => 'https://app.conexlog-dz.com',
             self::COYOTE_EXPRESS => 'https://coyoteexpressdz.ecotrack.dz',
-            self::DHD            => 'https://dhd.ecotrack.dz',
-            self::DISTAZERO      => 'https://distazero.ecotrack.dz',
-            self::E48HR          => 'https://48hr.ecotrack.dz',
-            self::FRETDIRECT     => 'https://fret.ecotrack.dz',
-            self::GOLIVRI        => 'https://golivri.ecotrack.dz',
-            self::MONO_HUB       => 'https://mono.ecotrack.dz',
-            self::MSM_GO         => 'https://msmgo.ecotrack.dz',
+            self::DHD => 'https://dhd.ecotrack.dz',
+            self::DISTAZERO => 'https://distazero.ecotrack.dz',
+            self::E48HR => 'https://48hr.ecotrack.dz',
+            self::FRETDIRECT => 'https://fret.ecotrack.dz',
+            self::GOLIVRI => 'https://golivri.ecotrack.dz',
+            self::MONO_HUB => 'https://mono.ecotrack.dz',
+            self::MSM_GO => 'https://msmgo.ecotrack.dz',
             self::NEGMAR_EXPRESS => 'https://negmar.ecotrack.dz',
-            self::PACKERS        => 'https://packers.ecotrack.dz',
-            self::PREST          => 'https://prest.ecotrack.dz',
-            self::RB_LIVRAISON   => 'https://rblivraison.ecotrack.dz',
-            self::REX_LIVRAISON  => 'https://rex.ecotrack.dz',
+            self::PACKERS => 'https://packers.ecotrack.dz',
+            self::PREST => 'https://prest.ecotrack.dz',
+            self::RB_LIVRAISON => 'https://rblivraison.ecotrack.dz',
+            self::REX_LIVRAISON => 'https://rex.ecotrack.dz',
             self::ROCKET_DELIVERY => 'https://rocket.ecotrack.dz',
             self::SALVA_DELIVERY => 'https://salvadelivery.ecotrack.dz',
             self::SPEED_DELIVERY => 'https://speeddelivery.ecotrack.dz',
-            self::TSL_EXPRESS    => 'https://tsl.ecotrack.dz',
-            self::WORLDEXPRESS   => 'https://worldexpress.ecotrack.dz',
+            self::TSL_EXPRESS => 'https://tsl.ecotrack.dz',
+            self::WORLDEXPRESS => 'https://worldexpress.ecotrack.dz',
         };
     }
 

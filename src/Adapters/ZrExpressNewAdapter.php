@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Uften\Courier\Adapters;
 
 use GuzzleHttp\Client;
-use GuzzleHttp\RequestOptions;
 use Uften\Courier\Data\CreateOrderData;
 use Uften\Courier\Data\Credentials\ZrExpressNewCredentials;
 use Uften\Courier\Data\LabelData;
@@ -17,7 +16,6 @@ use Uften\Courier\Enums\Provider;
 use Uften\Courier\Enums\TrackingStatus;
 use Uften\Courier\Exceptions\CourierException;
 use Uften\Courier\Exceptions\OrderNotFoundException;
-use Uften\Courier\Exceptions\UnsupportedOperationException;
 
 /**
  * Adapter for the ZR Express NEW platform (api.zrexpress.app, v1).
@@ -91,75 +89,75 @@ final class ZrExpressNewAdapter extends AbstractAdapter
      */
     private const array STATUS_MAP = [
         // ── Pending group ────────────────────────────────────────────────────
-        'commande_recue'        => TrackingStatus::PENDING,
-        'orderreceived'         => TrackingStatus::PENDING,
-        'en_traitement'         => TrackingStatus::PENDING,
-        'inprocessing'          => TrackingStatus::PENDING,
-        'appel_confirmation'    => TrackingStatus::PENDING,
-        'confirmationcall'      => TrackingStatus::PENDING,
-        'commande_confirmee'    => TrackingStatus::PENDING,
-        'orderconfirmed'        => TrackingStatus::PENDING,
-        'en_preparation'        => TrackingStatus::PENDING,
-        'inpreparation'         => TrackingStatus::PENDING,
+        'commande_recue' => TrackingStatus::PENDING,
+        'orderreceived' => TrackingStatus::PENDING,
+        'en_traitement' => TrackingStatus::PENDING,
+        'inprocessing' => TrackingStatus::PENDING,
+        'appel_confirmation' => TrackingStatus::PENDING,
+        'confirmationcall' => TrackingStatus::PENDING,
+        'commande_confirmee' => TrackingStatus::PENDING,
+        'orderconfirmed' => TrackingStatus::PENDING,
+        'en_preparation' => TrackingStatus::PENDING,
+        'inpreparation' => TrackingStatus::PENDING,
 
         // ── Picked up ────────────────────────────────────────────────────────
-        'pret_a_expedier'       => TrackingStatus::PICKED_UP,
-        'readytodispatch'       => TrackingStatus::PICKED_UP,
+        'pret_a_expedier' => TrackingStatus::PICKED_UP,
+        'readytodispatch' => TrackingStatus::PICKED_UP,
 
         // ── In transit ───────────────────────────────────────────────────────
-        'confirme_au_bureau'    => TrackingStatus::IN_TRANSIT,
-        'confirmedatbranch'     => TrackingStatus::IN_TRANSIT,
-        'dispatch'              => TrackingStatus::IN_TRANSIT,
-        'dispatched'            => TrackingStatus::IN_TRANSIT,
-        'vers_wilaya'           => TrackingStatus::IN_TRANSIT,
-        'interwilayatransit'    => TrackingStatus::IN_TRANSIT,
-        'en_livraison'          => TrackingStatus::IN_TRANSIT,
-        'indelivery'            => TrackingStatus::IN_TRANSIT,
+        'confirme_au_bureau' => TrackingStatus::IN_TRANSIT,
+        'confirmedatbranch' => TrackingStatus::IN_TRANSIT,
+        'dispatch' => TrackingStatus::IN_TRANSIT,
+        'dispatched' => TrackingStatus::IN_TRANSIT,
+        'vers_wilaya' => TrackingStatus::IN_TRANSIT,
+        'interwilayatransit' => TrackingStatus::IN_TRANSIT,
+        'en_livraison' => TrackingStatus::IN_TRANSIT,
+        'indelivery' => TrackingStatus::IN_TRANSIT,
 
         // ── Out for delivery ─────────────────────────────────────────────────
-        'sortie_en_livraison'   => TrackingStatus::OUT_FOR_DELIVERY,
-        'outfordelivery'        => TrackingStatus::OUT_FOR_DELIVERY,
+        'sortie_en_livraison' => TrackingStatus::OUT_FOR_DELIVERY,
+        'outfordelivery' => TrackingStatus::OUT_FOR_DELIVERY,
 
         // ── Delivered ────────────────────────────────────────────────────────
-        'livre'                 => TrackingStatus::DELIVERED,
-        'delivered'             => TrackingStatus::DELIVERED,
-        'encaisse'              => TrackingStatus::DELIVERED,
-        'collected'             => TrackingStatus::DELIVERED,
-        'recouvert'             => TrackingStatus::DELIVERED,
+        'livre' => TrackingStatus::DELIVERED,
+        'delivered' => TrackingStatus::DELIVERED,
+        'encaisse' => TrackingStatus::DELIVERED,
+        'collected' => TrackingStatus::DELIVERED,
+        'recouvert' => TrackingStatus::DELIVERED,
 
         // ── Failed delivery ──────────────────────────────────────────────────
-        'echec_livraison'       => TrackingStatus::FAILED_DELIVERY,
-        'faileddelivery'        => TrackingStatus::FAILED_DELIVERY,
-        'delivery_failed'       => TrackingStatus::FAILED_DELIVERY,
-        'commande_annulee'      => TrackingStatus::FAILED_DELIVERY,
-        'orderrefused'          => TrackingStatus::FAILED_DELIVERY,
+        'echec_livraison' => TrackingStatus::FAILED_DELIVERY,
+        'faileddelivery' => TrackingStatus::FAILED_DELIVERY,
+        'delivery_failed' => TrackingStatus::FAILED_DELIVERY,
+        'commande_annulee' => TrackingStatus::FAILED_DELIVERY,
+        'orderrefused' => TrackingStatus::FAILED_DELIVERY,
 
         // ── Returning ────────────────────────────────────────────────────────
-        'retour'                => TrackingStatus::RETURNING,
-        'returning'             => TrackingStatus::RETURNING,
-        'en_retour'             => TrackingStatus::RETURNING,
-        'inreturn'              => TrackingStatus::RETURNING,
+        'retour' => TrackingStatus::RETURNING,
+        'returning' => TrackingStatus::RETURNING,
+        'en_retour' => TrackingStatus::RETURNING,
+        'inreturn' => TrackingStatus::RETURNING,
 
         // ── Returned ─────────────────────────────────────────────────────────
-        'retourne'              => TrackingStatus::RETURNED,
-        'returned'              => TrackingStatus::RETURNED,
-        'retour_confirme'       => TrackingStatus::RETURNED,
-        'returnconfirmed'       => TrackingStatus::RETURNED,
-        'reinjecte_stock'       => TrackingStatus::RETURNED,
+        'retourne' => TrackingStatus::RETURNED,
+        'returned' => TrackingStatus::RETURNED,
+        'retour_confirme' => TrackingStatus::RETURNED,
+        'returnconfirmed' => TrackingStatus::RETURNED,
+        'reinjecte_stock' => TrackingStatus::RETURNED,
 
         // ── Cancelled ────────────────────────────────────────────────────────
-        'annule'                => TrackingStatus::CANCELLED,
-        'cancelled'             => TrackingStatus::CANCELLED,
+        'annule' => TrackingStatus::CANCELLED,
+        'cancelled' => TrackingStatus::CANCELLED,
 
         // ── Ready for pickup (stop desk) ─────────────────────────────────────
-        'disponible_bureau'     => TrackingStatus::READY_FOR_PICKUP,
-        'readyforpickup'        => TrackingStatus::READY_FOR_PICKUP,
-        'en_attente_client'     => TrackingStatus::READY_FOR_PICKUP,
-        'waitingclient'         => TrackingStatus::READY_FOR_PICKUP,
+        'disponible_bureau' => TrackingStatus::READY_FOR_PICKUP,
+        'readyforpickup' => TrackingStatus::READY_FOR_PICKUP,
+        'en_attente_client' => TrackingStatus::READY_FOR_PICKUP,
+        'waitingclient' => TrackingStatus::READY_FOR_PICKUP,
 
         // ── Exception ────────────────────────────────────────────────────────
-        'en_attente_echange'    => TrackingStatus::EXCEPTION,
-        'remboursement'         => TrackingStatus::EXCEPTION,
+        'en_attente_echange' => TrackingStatus::EXCEPTION,
+        'remboursement' => TrackingStatus::EXCEPTION,
     ];
 
     // -------------------------------------------------------------------------
@@ -170,15 +168,15 @@ final class ZrExpressNewAdapter extends AbstractAdapter
 
     /** @var array<int, string> */
     private const array WILAYA_UUID_MAP = [
-        1  => '6e978fc5-f20a-4b5f-9adf-61dd21a7672a', // Adrar
-        2  => '981f136a-996f-463e-a536-8e643daab193', // Chlef
-        3  => '00b5ef4b-ae2e-4b7f-bd26-70c1a376b69b', // Laghouat
-        4  => '37c70742-df6b-4019-981a-a16a29a14748', // Oum El Bouaghi
-        5  => 'a8c05822-e30a-4d5a-bcb3-3b3bb23c079b', // Batna
-        6  => '295585ad-4cf4-4b7e-b276-9bb62d019749', // Bejaia
-        7  => '796e70df-1102-44da-9582-2da66ead2ba6', // Biskra
-        8  => 'e740c188-2bbc-4206-8999-302b17dc0e4b', // Bechar
-        9  => 'a7e764cf-e9ca-4c1f-8232-89852d102aec', // Blida
+        1 => '6e978fc5-f20a-4b5f-9adf-61dd21a7672a', // Adrar
+        2 => '981f136a-996f-463e-a536-8e643daab193', // Chlef
+        3 => '00b5ef4b-ae2e-4b7f-bd26-70c1a376b69b', // Laghouat
+        4 => '37c70742-df6b-4019-981a-a16a29a14748', // Oum El Bouaghi
+        5 => 'a8c05822-e30a-4d5a-bcb3-3b3bb23c079b', // Batna
+        6 => '295585ad-4cf4-4b7e-b276-9bb62d019749', // Bejaia
+        7 => '796e70df-1102-44da-9582-2da66ead2ba6', // Biskra
+        8 => 'e740c188-2bbc-4206-8999-302b17dc0e4b', // Bechar
+        9 => 'a7e764cf-e9ca-4c1f-8232-89852d102aec', // Blida
         10 => 'a1f0229c-4f34-40aa-9238-fadde6757cba', // Bouira
         11 => '38560f06-e049-4fd2-9664-a655e552b517', // Tamanrasset
         12 => '5afdfab6-e505-4691-abc7-5e8bd79afad5', // Tebessa
@@ -296,7 +294,7 @@ final class ZrExpressNewAdapter extends AbstractAdapter
         parent::__construct(
             baseUrl: Provider::ZREXPRESS_NEW->baseUrl(),
             defaultHeaders: [
-                'X-Tenant'  => $this->credentials->tenantId,
+                'X-Tenant' => $this->credentials->tenantId,
                 'X-Api-Key' => $this->credentials->apiKey,
             ],
             httpClient: $httpClient,
@@ -318,6 +316,7 @@ final class ZrExpressNewAdapter extends AbstractAdapter
 
         // Try without underscores to handle PascalCase API responses
         $keyNoUnderscore = str_replace('_', '', $key);
+
         return self::STATUS_MAP[$keyNoUnderscore] ?? TrackingStatus::UNKNOWN;
     }
 
@@ -330,8 +329,9 @@ final class ZrExpressNewAdapter extends AbstractAdapter
         try {
             $this->post('api/v1/workflows/search', [
                 'pageNumber' => 1,
-                'pageSize'   => 1,
+                'pageSize' => 1,
             ]);
+
             return true;
         } catch (\Throwable) {
             return false;
@@ -355,16 +355,16 @@ final class ZrExpressNewAdapter extends AbstractAdapter
     public function getRates(?int $fromWilayaId = null, ?int $toWilayaId = null): array
     {
         $response = $this->get('api/v1/delivery-pricing/rates');
-        $rates    = $response['rates'] ?? [];
+        $rates = $response['rates'] ?? [];
 
-        if (!is_array($rates) || empty($rates)) {
+        if (! is_array($rates) || empty($rates)) {
             return [];
         }
 
         $result = [];
 
         foreach ($rates as $rate) {
-            if (!is_array($rate)) {
+            if (! is_array($rate)) {
                 continue;
             }
 
@@ -389,11 +389,11 @@ final class ZrExpressNewAdapter extends AbstractAdapter
             }
 
             // Extract home and pickup-point prices from the deliveryPrices array
-            $homePrice    = 0.0;
+            $homePrice = 0.0;
             $stopDeskPrice = 0.0;
 
             foreach ($rate['deliveryPrices'] ?? [] as $dp) {
-                $type  = mb_strtolower((string) ($dp['deliveryType'] ?? ''));
+                $type = mb_strtolower((string) ($dp['deliveryType'] ?? ''));
                 $price = (float) ($dp['price'] ?? 0);
 
                 if ($type === 'home') {
@@ -404,13 +404,13 @@ final class ZrExpressNewAdapter extends AbstractAdapter
             }
 
             $result[] = new RateData(
-                provider:          Provider::ZREXPRESS_NEW,
-                toWilayaId:        $wilayaCode,
-                toWilayaName:      (string) ($rate['toTerritoryName'] ?? ''),
+                provider: Provider::ZREXPRESS_NEW,
+                toWilayaId: $wilayaCode,
+                toWilayaName: (string) ($rate['toTerritoryName'] ?? ''),
                 homeDeliveryPrice: $homePrice,
-                stopDeskPrice:     $stopDeskPrice,
-                deliveryType:      DeliveryType::HOME,
-                fromWilayaId:      $fromWilayaId,
+                stopDeskPrice: $stopDeskPrice,
+                deliveryType: DeliveryType::HOME,
+                fromWilayaId: $fromWilayaId,
             );
         }
 
@@ -420,21 +420,21 @@ final class ZrExpressNewAdapter extends AbstractAdapter
     public function getCreateOrderValidationRules(): array
     {
         return [
-            'order_id'            => ['required', 'string', 'max:100'],
-            'first_name'          => ['required', 'string', 'max:100'],
-            'last_name'           => ['required', 'string', 'max:100'],
-            'phone'               => ['required', 'string'],
-            'address'             => ['nullable', 'string', 'max:500'],
-            'to_wilaya_id'        => ['nullable', 'integer', 'between:1,58'],
-            'to_commune'          => ['nullable', 'string'],
+            'order_id' => ['required', 'string', 'max:100'],
+            'first_name' => ['required', 'string', 'max:100'],
+            'last_name' => ['required', 'string', 'max:100'],
+            'phone' => ['required', 'string'],
+            'address' => ['nullable', 'string', 'max:500'],
+            'to_wilaya_id' => ['nullable', 'integer', 'between:1,58'],
+            'to_commune' => ['nullable', 'string'],
             'product_description' => ['required', 'string', 'min:2', 'max:250'],
-            'price'               => ['required', 'numeric', 'min:0', 'max:150000'],
-            'delivery_type'       => ['required', 'integer', 'in:1,2'],
-            'phone_alt'           => ['nullable', 'string'],
-            'weight'              => ['nullable', 'numeric', 'min:0'],
-            'length'              => ['nullable', 'numeric', 'min:0'],
-            'width'               => ['nullable', 'numeric', 'min:0'],
-            'height'              => ['nullable', 'numeric', 'min:0'],
+            'price' => ['required', 'numeric', 'min:0', 'max:150000'],
+            'delivery_type' => ['required', 'integer', 'in:1,2'],
+            'phone_alt' => ['nullable', 'string'],
+            'weight' => ['nullable', 'numeric', 'min:0'],
+            'length' => ['nullable', 'numeric', 'min:0'],
+            'width' => ['nullable', 'numeric', 'min:0'],
+            'height' => ['nullable', 'numeric', 'min:0'],
             /**
              * Provide the district territory UUID in notes.
              * The city UUID is auto-resolved from toWilayaId via WILAYA_UUID_MAP.
@@ -442,7 +442,7 @@ final class ZrExpressNewAdapter extends AbstractAdapter
              *   "zr_city:{uuid}|zr_district:{uuid}|optional note"
              *   "zr_district:{uuid}|optional note"   ← preferred when toWilayaId is set
              */
-            'notes'               => ['nullable', 'string'],
+            'notes' => ['nullable', 'string'],
         ];
     }
 
@@ -466,48 +466,48 @@ final class ZrExpressNewAdapter extends AbstractAdapter
         if ($districtTerritoryId === null) {
             throw new CourierException(
                 'ZR Express NEW requires a district territory UUID. '
-                . 'Pass it via CreateOrderData::$notes: '
-                . '"zr_district:{uuid}|optional note". '
-                . 'The city UUID is auto-resolved from toWilayaId when possible.',
+                .'Pass it via CreateOrderData::$notes: '
+                .'"zr_district:{uuid}|optional note". '
+                .'The city UUID is auto-resolved from toWilayaId when possible.',
             );
         }
 
         if ($cityTerritoryId === null) {
             throw new CourierException(
                 'ZR Express NEW requires a city territory UUID. '
-                . 'toWilayaId ' . ($data->toWilayaId ?? 'null') . ' is not in the wilaya map. '
-                . 'Provide it explicitly: "zr_city:{uuid}|zr_district:{uuid}|optional note".',
+                .'toWilayaId '.($data->toWilayaId ?? 'null').' is not in the wilaya map. '
+                .'Provide it explicitly: "zr_city:{uuid}|zr_district:{uuid}|optional note".',
             );
         }
 
         $payload = [
             'customer' => [
                 'customerId' => $this->randomUuid(),
-                'name'       => trim($data->firstName . ' ' . $data->lastName),
-                'phone'      => [
+                'name' => trim($data->firstName.' '.$data->lastName),
+                'phone' => [
                     'number1' => $data->phone,
                     'number2' => $data->phoneAlt,
                 ],
             ],
             'deliveryAddress' => [
-                'cityTerritoryId'     => $cityTerritoryId,
+                'cityTerritoryId' => $cityTerritoryId,
                 'districtTerritoryId' => $districtTerritoryId,
-                'street'              => $data->address ?: null,
+                'street' => $data->address ?: null,
             ],
             'orderedProducts' => [
                 [
                     'productName' => $data->productDescription,
-                    'unitPrice'   => $data->price,
-                    'quantity'    => 1,
-                    'stockType'   => 'none',
+                    'unitPrice' => $data->price,
+                    'quantity' => 1,
+                    'stockType' => 'none',
                 ],
             ],
             'deliveryType' => $data->deliveryType === DeliveryType::STOP_DESK
                 ? 'pickup-point'
                 : 'home',
             'description' => $data->productDescription,
-            'amount'      => $data->price,
-            'externalId'  => $data->orderId,
+            'amount' => $data->price,
+            'externalId' => $data->orderId,
         ];
 
         if ($data->deliveryType === DeliveryType::STOP_DESK && $data->stopDeskId !== null) {
@@ -520,7 +520,7 @@ final class ZrExpressNewAdapter extends AbstractAdapter
 
         if ($data->length !== null || $data->width !== null || $data->height !== null) {
             $payload['orderedProducts'][0]['length'] = $data->length;
-            $payload['orderedProducts'][0]['width']  = $data->width;
+            $payload['orderedProducts'][0]['width'] = $data->width;
             $payload['orderedProducts'][0]['height'] = $data->height;
         }
 
@@ -601,9 +601,9 @@ final class ZrExpressNewAdapter extends AbstractAdapter
         );
 
         $labelFiles = $response['parcelLabelFiles'] ?? [];
-        $failed     = $response['failedTrackingNumbers'] ?? [];
+        $failed = $response['failedTrackingNumbers'] ?? [];
 
-        if (!empty($failed) && in_array($trackingNumber, (array) $failed, strict: true)) {
+        if (! empty($failed) && in_array($trackingNumber, (array) $failed, strict: true)) {
             throw new CourierException(
                 "ZR Express NEW could not generate a label for [{$trackingNumber}] — parcel not found or territory data missing.",
             );
@@ -615,7 +615,7 @@ final class ZrExpressNewAdapter extends AbstractAdapter
             );
         }
 
-        $file    = $labelFiles[0];
+        $file = $labelFiles[0];
         $fileUrl = (string) ($file['fileUrl'] ?? '');
 
         if ($fileUrl === '') {
@@ -625,10 +625,10 @@ final class ZrExpressNewAdapter extends AbstractAdapter
         }
 
         return new LabelData(
-            provider:       Provider::ZREXPRESS_NEW,
+            provider: Provider::ZREXPRESS_NEW,
             trackingNumber: $trackingNumber,
-            type:           LabelType::HTML_URL,
-            url:            $fileUrl,
+            type: LabelType::HTML_URL,
+            url: $fileUrl,
         );
     }
 
@@ -671,13 +671,13 @@ final class ZrExpressNewAdapter extends AbstractAdapter
      *   "zr_city:{uuid}|zr_district:{uuid}|optional note"            ← explicit override
      *
      * @return array{0: string|null, 1: string|null, 2: string|null}
-     *              [cityTerritoryId, districtTerritoryId, cleanNote]
+     *                                                               [cityTerritoryId, districtTerritoryId, cleanNote]
      */
     private function parseTerritoryIds(?string $notes, ?int $toWilayaId = null): array
     {
-        $cityId     = null;
+        $cityId = null;
         $districtId = null;
-        $remaining  = [];
+        $remaining = [];
 
         foreach (explode('|', (string) $notes) as $segment) {
             $segment = trim($segment);
@@ -706,7 +706,7 @@ final class ZrExpressNewAdapter extends AbstractAdapter
     private function resolveParcelId(string $trackingNumber): string
     {
         $order = $this->getOrder($trackingNumber);
-        $id    = $order->raw['id'] ?? null;
+        $id = $order->raw['id'] ?? null;
 
         if ($id === null) {
             throw new OrderNotFoundException($trackingNumber);
@@ -725,7 +725,7 @@ final class ZrExpressNewAdapter extends AbstractAdapter
 
     private function randomUuid(): string
     {
-        $data    = random_bytes(16);
+        $data = random_bytes(16);
         $data[6] = chr(ord($data[6]) & 0x0F | 0x40);
         $data[8] = chr(ord($data[8]) & 0x3F | 0x80);
 
@@ -735,41 +735,41 @@ final class ZrExpressNewAdapter extends AbstractAdapter
     private function hydrateOrder(array $raw): OrderData
     {
         $stateName = (string) ($this->dig($raw, 'state', 'name') ?? '');
-        $status    = $this->normalizeStatus($stateName);
+        $status = $this->normalizeStatus($stateName);
 
         // cityTerritoryCode is the integer wilaya code (1-58)
         $wilayaCode = (int) ($this->dig($raw, 'deliveryAddress', 'cityTerritoryCode') ?? 0);
 
         // If code not present, try to resolve from the territory UUID
         if ($wilayaCode === 0) {
-            $cityUuid   = (string) ($this->dig($raw, 'deliveryAddress', 'cityTerritoryId') ?? '');
+            $cityUuid = (string) ($this->dig($raw, 'deliveryAddress', 'cityTerritoryId') ?? '');
             $wilayaCode = self::WILAYA_CODE_MAP[$cityUuid] ?? 0;
         }
 
-        $commune      = (string) ($this->dig($raw, 'deliveryAddress', 'district') ?? '');
-        $city         = (string) ($this->dig($raw, 'deliveryAddress', 'city') ?? '');
+        $commune = (string) ($this->dig($raw, 'deliveryAddress', 'district') ?? '');
+        $city = (string) ($this->dig($raw, 'deliveryAddress', 'city') ?? '');
         $customerName = (string) ($this->dig($raw, 'customer', 'name') ?? '');
-        $phone        = (string) ($this->dig($raw, 'customer', 'phone', 'number1') ?? '');
+        $phone = (string) ($this->dig($raw, 'customer', 'phone', 'number1') ?? '');
 
         return new OrderData(
-            orderId:        (string) ($raw['externalId']      ?? ''),
-            trackingNumber: (string) ($raw['trackingNumber']  ?? (string) ($raw['id'] ?? '')),
-            provider:       Provider::ZREXPRESS_NEW,
-            status:         $status,
-            recipientName:  $customerName,
-            phone:          $phone,
-            address:        (string) ($this->dig($raw, 'deliveryAddress', 'street') ?? ''),
-            toWilayaId:     $wilayaCode,
-            toCommune:      $commune !== '' ? $commune : $city,
-            price:          (float) ($raw['amount']           ?? 0),
-            shippingFee:    isset($raw['deliveryPrice']) ? (float) $raw['deliveryPrice'] : null,
-            rawStatus:      $stateName,
-            notes:          $this->dig($raw, 'situation', 'name') !== null
+            orderId: (string) ($raw['externalId'] ?? ''),
+            trackingNumber: (string) ($raw['trackingNumber'] ?? (string) ($raw['id'] ?? '')),
+            provider: Provider::ZREXPRESS_NEW,
+            status: $status,
+            recipientName: $customerName,
+            phone: $phone,
+            address: (string) ($this->dig($raw, 'deliveryAddress', 'street') ?? ''),
+            toWilayaId: $wilayaCode,
+            toCommune: $commune !== '' ? $commune : $city,
+            price: (float) ($raw['amount'] ?? 0),
+            shippingFee: isset($raw['deliveryPrice']) ? (float) $raw['deliveryPrice'] : null,
+            rawStatus: $stateName,
+            notes: $this->dig($raw, 'situation', 'name') !== null
                             ? (string) $this->dig($raw, 'situation', 'name')
                             : null,
-            createdAt:      $this->parseDate($raw['createdAt']          ?? null),
-            updatedAt:      $this->parseDate($raw['lastStateUpdateAt']  ?? null),
-            raw:            $raw,
+            createdAt: $this->parseDate($raw['createdAt'] ?? null),
+            updatedAt: $this->parseDate($raw['lastStateUpdateAt'] ?? null),
+            raw: $raw,
         );
     }
 }
