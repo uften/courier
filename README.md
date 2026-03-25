@@ -2,7 +2,7 @@
 
 > A modern, strictly-typed Laravel package for integrating **most** Algerian shipping providers — built on PHP 8.4, backed by enums, readonly DTOs, and a clean adapter pattern.
 
-[![PHP 8.4](https://img.shields.io/badge/PHP-8.4-blue?logo=php)](https://php.net) [![Laravel](https://img.shields.io/badge/Laravel-11%20%7C%2012-red?logo=laravel)](https://laravel.com) [![Tests](https://img.shields.io/github/actions/workflow/status/uften/courier/tests.yml?branch=main&label=tests)](https://github.com/uften/courier/actions) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow)](LICENSE.md)
+[![PHP 8.4](https://img.shields.io/badge/PHP-8.4-blue?logo=php)](https://php.net) [![Laravel](https://img.shields.io/badge/Laravel-11%20%7C%2012-red?logo=laravel)](https://laravel.com) [![Tests](https://img.shields.io/github/actions/workflow/status/uften/courier/tests.yml?branch=master&label=tests)](https://github.com/uften/courier/actions) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow)](LICENSE.md)
 
 ---
 
