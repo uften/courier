@@ -309,22 +309,25 @@ describe('ZimouAdapter — getOrder', function (): void {
 // =========================================================================
 describe('ZimouAdapter — getLabel', function (): void {
 
-    it('returns a PDF_BASE64 label from raw binary response', function (): void {
-        $fakePdf = '%PDF-1.4 fake pdf content here';
-        $adapter = zimouAdapter([new Response(200, [], $fakePdf)]);
+    it('returns a PDF_URL label extracted from print_url', function (): void {
+        $printUrl = 'https://zimou.express/print/1234';
+        $adapter = zimouAdapter([
+            new Response(200, [], json_encode(['data' => zimouPackageResource(['print_url' => $printUrl])])),
+        ]);
 
-        $label = $adapter->getLabel('ZM-ABC123');
+        $label = $adapter->getLabel('1234');
 
-        expect($label->type)->toBe(LabelType::PDF_BASE64)
+        expect($label->type)->toBe(LabelType::PDF_URL)
             ->and($label->provider)->toBe(Provider::ZIMOU)
-            ->and($label->trackingNumber)->toBe('ZM-ABC123')
-            ->and($label->decodePdf())->toBe($fakePdf);
+            ->and($label->url)->toBe($printUrl);
     });
 
-    it('throws CourierException on empty label response', function (): void {
-        $adapter = zimouAdapter([new Response(200, [], '')]);
-        expect(fn () => $adapter->getLabel('ZM-NOLABEL'))
-            ->toThrow(CourierException::class);
+    it('throws CourierException on missing print_url', function (): void {
+        $adapter = zimouAdapter([
+            new Response(200, [], json_encode(['data' => zimouPackageResource(['print_url' => null])])),
+        ]);
+        expect(fn () => $adapter->getLabel('1234'))
+            ->toThrow(CourierException::class, 'no print_url');
     });
 
 });
@@ -422,6 +425,34 @@ describe('ZimouAdapter — normalizeStatus', function (): void {
         foreach ([10, 27, 32, 38, 83, 118] as $id) {
             expect($adapter->normalizeStatusById($id))->toBe(TrackingStatus::EXCEPTION, "ID {$id}");
         }
+    });
+
+});
+
+describe('ZimouAdapter — cancelOrder', function (): void {
+
+    it('sends a DELETE request to v3/packages/bulk', function (): void {
+        $container = [];
+        $history = Middleware::history($container);
+        $mock = new MockHandler([new Response(200, [], json_encode(['success' => true]))]);
+        $stack = HandlerStack::create($mock);
+        $stack->push($history);
+        $client = new Client(['handler' => $stack, 'http_errors' => false]);
+        $adapter = new ZimouAdapter(new TokenCredentials('t'), $client);
+
+        $result = $adapter->cancelOrder('ZM-123');
+
+        expect($result)->toBeTrue();
+        expect($container[0]['request']->getMethod())->toBe('DELETE');
+        expect($container[0]['request']->getUri()->getPath())->toBe('v3/packages/bulk');
+        $body = json_decode((string) $container[0]['request']->getBody(), true);
+        expect($body['tracking_codes'])->toBe(['ZM-123']);
+    });
+
+    it('throws CourierException on failure', function (): void {
+        $adapter = zimouAdapter([new Response(400, [], json_encode(['message' => 'Cannot cancel']))]);
+        expect(fn () => $adapter->cancelOrder('ZM-123'))
+            ->toThrow(CourierException::class, 'Zimou Express rejected');
     });
 
 });

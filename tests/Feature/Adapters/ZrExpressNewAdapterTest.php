@@ -188,7 +188,8 @@ describe('ZrExpressNewAdapter — testCredentials', function (): void {
 
 describe('ZrExpressNewAdapter — createOrder', function (): void {
 
-    it('auto-resolves city UUID from toWilayaId when only zr_district is in notes', function (): void {
+    it('auto-resolves city UUID from toWilayaId when a UUID is passed to toWilayaId', function (): void {
+        $cityUuid = 'd134c182-7dac-4655-9d9b-bbdb62aa2ec4';
         $ctx = zrnAdapterWithHistory([
             new Response(201, [], json_encode(['id' => '8c1a4c53-9d1a-4bb0-9b44-e9c0c2f90111'])),
             new Response(200, [], json_encode(parcelFixture())),
@@ -197,14 +198,14 @@ describe('ZrExpressNewAdapter — createOrder', function (): void {
         $ctx['adapter']->createOrder(new CreateOrderData(
             orderId: 'ORD-1', firstName: 'Ahmed', lastName: 'Benali',
             phone: '+213550112233', address: '24 Rue Didouche',
-            toWilayaId: 16, toCommune: "Sidi M'Hamed",
+            toWilayaId: $cityUuid, toCommune: "Sidi M'Hamed",
             productDescription: 'Smartphone', price: 4500.0,
             notes: 'zr_district:e88130fa-62ae-4505-80a4-5a5c0a912313',
         ));
 
         $body = json_decode((string) $ctx['history'][0]['request']->getBody(), true);
         expect($body['deliveryAddress']['cityTerritoryId'])
-            ->toBe('d134c182-7dac-4655-9d9b-bbdb62aa2ec4') // Alger UUID
+            ->toBe($cityUuid)
             ->and($body['deliveryAddress']['districtTerritoryId'])
             ->toBe('e88130fa-62ae-4505-80a4-5a5c0a912313');
     });
@@ -235,14 +236,14 @@ describe('ZrExpressNewAdapter — createOrder', function (): void {
         )))->toThrow(CourierException::class, 'district territory UUID');
     });
 
-    it('throws CourierException when toWilayaId is not in the map and zr_city is absent', function (): void {
+    it('throws CourierException when toWilayaId is not a UUID and zr_city is absent', function (): void {
         $adapter = zrnAdapter([]);
         expect(fn () => $adapter->createOrder(new CreateOrderData(
             orderId: 'X', firstName: 'A', lastName: 'B', phone: '+213550000000',
-            address: 'A', toWilayaId: 99, toCommune: 'Unknown',
+            address: 'A', toWilayaId: 16, toCommune: 'Alger',
             productDescription: 'Item', price: 500.0,
             notes: 'zr_district:DIST-UUID',
-        )))->toThrow(CourierException::class, 'not in the wilaya map');
+        )))->toThrow(CourierException::class, 'city territory UUID');
     });
 
     it('returns full OrderData after two-step flow', function (): void {
@@ -253,7 +254,7 @@ describe('ZrExpressNewAdapter — createOrder', function (): void {
         $order = $adapter->createOrder(new CreateOrderData(
             orderId: 'MY-ORD-001', firstName: 'Ahmed', lastName: 'Benali',
             phone: '+213550112233', address: '24 Rue Didouche',
-            toWilayaId: 16, toCommune: "Sidi M'Hamed",
+            toWilayaId: 'd134c182-7dac-4655-9d9b-bbdb62aa2ec4', toCommune: "Sidi M'Hamed",
             productDescription: 'Smartphone', price: 4500.0,
             notes: 'zr_district:e88130fa-62ae-4505-80a4-5a5c0a912313',
         ));
@@ -271,7 +272,7 @@ describe('ZrExpressNewAdapter — createOrder', function (): void {
         ]);
         $ctx['adapter']->createOrder(new CreateOrderData(
             orderId: 'SD', firstName: 'A', lastName: 'B', phone: '+213550000000',
-            address: 'A', toWilayaId: 16, toCommune: 'Alger',
+            address: 'A', toWilayaId: 'd134c182-7dac-4655-9d9b-bbdb62aa2ec4', toCommune: 'Alger',
             productDescription: 'Item', price: 1000.0,
             deliveryType: DeliveryType::STOP_DESK,
             notes: 'zr_district:D-UUID',
@@ -287,7 +288,7 @@ describe('ZrExpressNewAdapter — createOrder', function (): void {
         ]);
         $ctx['adapter']->createOrder(new CreateOrderData(
             orderId: 'W', firstName: 'A', lastName: 'B', phone: '+213550000000',
-            address: 'A', toWilayaId: 16, toCommune: 'Alger',
+            address: 'A', toWilayaId: 'd134c182-7dac-4655-9d9b-bbdb62aa2ec4', toCommune: 'Alger',
             productDescription: 'Heavy', price: 2000.0, weight: 3.5,
             notes: 'zr_district:D-UUID',
         ));
@@ -302,7 +303,7 @@ describe('ZrExpressNewAdapter — createOrder', function (): void {
         ]);
         $ctx['adapter']->createOrder(new CreateOrderData(
             orderId: 'V', firstName: 'A', lastName: 'B', phone: '+213550000000',
-            address: 'A', toWilayaId: 16, toCommune: 'Alger',
+            address: 'A', toWilayaId: 'd134c182-7dac-4655-9d9b-bbdb62aa2ec4', toCommune: 'Alger',
             productDescription: 'Fridge', price: 45000.0,
             length: 60.0, width: 70.0, height: 180.0,
             notes: 'zr_district:D-UUID',
@@ -316,7 +317,7 @@ describe('ZrExpressNewAdapter — createOrder', function (): void {
         $adapter = zrnAdapter([new Response(201, [], json_encode(['error' => 'bad']))]);
         expect(fn () => $adapter->createOrder(new CreateOrderData(
             orderId: 'E', firstName: 'A', lastName: 'B', phone: '+213550000000',
-            address: 'A', toWilayaId: 16, toCommune: 'Alger',
+            address: 'A', toWilayaId: 'd134c182-7dac-4655-9d9b-bbdb62aa2ec4', toCommune: 'Alger',
             productDescription: 'Item', price: 500.0, notes: 'zr_district:D',
         )))->toThrow(CourierException::class, 'parcel ID');
     });
@@ -346,12 +347,10 @@ describe('ZrExpressNewAdapter — getOrder', function (): void {
         expect($order->status)->toBe(TrackingStatus::DELIVERED)->and($order->isDelivered())->toBeTrue();
     });
 
-    it('resolves wilaya code from UUID when cityTerritoryCode is absent', function (): void {
-        $fixture = parcelFixture();
-        unset($fixture['deliveryAddress']['cityTerritoryCode']);
-        $adapter = zrnAdapter([new Response(200, [], json_encode($fixture))]);
+    it('correctly hydrates wilaya code when present in cityTerritoryCode', function (): void {
+        $adapter = zrnAdapter([new Response(200, [], json_encode(parcelFixture()))]);
         $order = $adapter->getOrder('16-JUKYSI-ZR');
-        expect($order->toWilayaId)->toBe(16); // Resolved from cityTerritoryId UUID
+        expect($order->toWilayaId)->toBe(16);
     });
 
     it('throws OrderNotFoundException on 404', function (): void {
@@ -467,7 +466,7 @@ describe('ZrExpressNewAdapter — getRates', function (): void {
         expect($rates)->toHaveCount(1)->and($rates[0]->toWilayaId)->toBe(9);
     });
 
-    it('resolves wilaya code from UUID when toTerritoryCode is null', function (): void {
+    it('skips wilaya resolution when toTerritoryCode is null (as static maps are removed)', function (): void {
         $ratesNoCode = [
             'rates' => [[
                 'toTerritoryId' => 'e9a1e9cf-8475-4768-94cc-0888d094ff47', // Constantine=25
@@ -482,7 +481,7 @@ describe('ZrExpressNewAdapter — getRates', function (): void {
         ];
         $adapter = zrnAdapter([new Response(200, [], json_encode($ratesNoCode))]);
         $rates = $adapter->getRates();
-        expect($rates)->toHaveCount(1)->and($rates[0]->toWilayaId)->toBe(25);
+        expect($rates)->toBeEmpty();
     });
 
     it('does not append wilaya filter params to the API request URL', function (): void {
@@ -542,29 +541,24 @@ describe('ZrExpressNewAdapter — normalizeStatus', function (): void {
 
 });
 
-describe('ZrExpressNewAdapter — wilaya UUID helpers', function (): void {
+describe('ZrExpressNewAdapter — territory search', function (): void {
 
-    it('resolveCityUuid returns correct UUID for all 54 wilaya codes', function (): void {
-        $adapter = zrnAdapter([]);
-        expect($adapter->resolveCityUuid(16))->toBe('d134c182-7dac-4655-9d9b-bbdb62aa2ec4')
-            ->and($adapter->resolveCityUuid(9))->toBe('a7e764cf-e9ca-4c1f-8232-89852d102aec')
-            ->and($adapter->resolveCityUuid(1))->toBe('6e978fc5-f20a-4b5f-9adf-61dd21a7672a')
-            ->and($adapter->resolveCityUuid(58))->toBe('3d19d427-08f3-492c-a1d0-e7ace3516ed2')
-            ->and($adapter->resolveCityUuid(99))->toBeNull(); // Unknown
+    it('searchTerritory returns UUID on successful search', function (): void {
+        $adapter = zrnAdapter([new Response(200, [], json_encode([
+            'items' => [['id' => 'found-uuid']],
+        ]))]);
+
+        expect($adapter->searchTerritory('Alger', 'wilaya'))->toBe('found-uuid');
     });
 
-    it('resolveWilayaCode returns correct integer code for territory UUIDs', function (): void {
-        $adapter = zrnAdapter([]);
-        expect($adapter->resolveWilayaCode('d134c182-7dac-4655-9d9b-bbdb62aa2ec4'))->toBe(16)
-            ->and($adapter->resolveWilayaCode('a7e764cf-e9ca-4c1f-8232-89852d102aec'))->toBe(9)
-            ->and($adapter->resolveWilayaCode('ffffffff-ffff-ffff-ffff-ffffffffffff'))->toBeNull();
+    it('searchTerritory returns null on empty results', function (): void {
+        $adapter = zrnAdapter([new Response(200, [], json_encode(['items' => []]))]);
+        expect($adapter->searchTerritory('Ghost', 'wilaya'))->toBeNull();
     });
 
-    it('correctly handles wilaya code gaps (33, 50, 56 do not exist)', function (): void {
-        $adapter = zrnAdapter([]);
-        expect($adapter->resolveCityUuid(33))->toBeNull()
-            ->and($adapter->resolveCityUuid(50))->toBeNull()
-            ->and($adapter->resolveCityUuid(56))->toBeNull();
+    it('searchTerritory returns null on API error', function (): void {
+        $adapter = zrnAdapter([new Response(500)]);
+        expect($adapter->searchTerritory('Error', 'wilaya'))->toBeNull();
     });
 
 });

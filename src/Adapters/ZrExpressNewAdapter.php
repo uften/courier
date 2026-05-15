@@ -157,7 +157,6 @@ final class ZrExpressNewAdapter extends AbstractAdapter
     // Territory maps removed as per refactoring requirements.
     // Resolution is now handled dynamically via API in the service layer.
 
-
     public function __construct(
         private readonly ZrExpressNewCredentials $credentials,
         ?Client $httpClient = null,
@@ -335,22 +334,22 @@ final class ZrExpressNewAdapter extends AbstractAdapter
         if ($districtTerritoryId === null) {
             throw new CourierException(
                 'ZR Express NEW requires a district territory UUID. '
-                    . 'Pass it via CreateOrderData::$notes: "zr_district:{uuid}|..." '
-                    . 'or ensure it is resolved in the service layer.',
+                    .'Pass it via CreateOrderData::$notes: "zr_district:{uuid}|..." '
+                    .'or ensure it is resolved in the service layer.',
             );
         }
 
         if ($cityTerritoryId === null) {
             throw new CourierException(
                 'ZR Express NEW requires a city territory UUID. '
-                    . 'Ensure it is resolved via API or provided explicitly in notes.',
+                    .'Ensure it is resolved via API or provided explicitly in notes.',
             );
         }
 
         $payload = [
             'customer' => [
                 'customerId' => $this->randomUuid(),
-                'name' => trim($data->firstName . ' ' . $data->lastName),
+                'name' => trim($data->firstName.' '.$data->lastName),
                 'phone' => [
                     'number1' => $data->phone,
                     'number2' => $data->phoneAlt,
@@ -463,6 +462,7 @@ final class ZrExpressNewAdapter extends AbstractAdapter
         $response = $this->post(
             'api/v1/parcels/labels/individual',
             ['trackingNumbers' => [$trackingNumber]],
+            ['Authorization' => "Bearer {$this->credentials->apiKey}"],
         );
 
         $labelFiles = $response['parcelLabelFiles'] ?? [];
@@ -500,9 +500,8 @@ final class ZrExpressNewAdapter extends AbstractAdapter
     /**
      * Search for a territory UUID by name and level.
      *
-     * @param string $name
-     * @param string $level 'wilaya' or 'commune'
-     * @param string|null $parentId UUID of the parent territory
+     * @param  string  $level  'wilaya' or 'commune'
+     * @param  string|null  $parentId  UUID of the parent territory
      * @return string|null UUID of the territory if found
      */
     public function searchTerritory(string $name, string $level = 'wilaya', ?string $parentId = null): ?string
@@ -551,7 +550,6 @@ final class ZrExpressNewAdapter extends AbstractAdapter
     // -------------------------------------------------------------------------
 
     // Dynamic resolution via API search preferred over static mapping.
-
 
     // -------------------------------------------------------------------------
     // Private helpers
