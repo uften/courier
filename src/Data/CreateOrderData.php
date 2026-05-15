@@ -78,6 +78,9 @@ final readonly class CreateOrderData
 
         /** Parcel height in centimetres. */
         public ?float $height = null,
+
+        /** Total number of items in the parcel. */
+        public ?int $quantity = null,
     ) {}
 
     /**
@@ -111,6 +114,7 @@ final readonly class CreateOrderData
             length: isset($data['length']) ? (float) $data['length'] : null,
             width: isset($data['width']) ? (float) $data['width'] : null,
             height: isset($data['height']) ? (float) $data['height'] : null,
+            quantity: isset($data['quantity']) ? (int) $data['quantity'] : (isset($data['quantity_items']) ? (int) $data['quantity_items'] : null),
         );
     }
 
@@ -143,6 +147,7 @@ final readonly class CreateOrderData
             'length' => $this->length,
             'width' => $this->width,
             'height' => $this->height,
+            'quantity' => $this->quantity,
         ];
     }
 }

@@ -7,6 +7,22 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ---
 
+## [1.2.0] - 2026-05-16
+
+### Added
+
+-   **CreateOrderData** — added optional `quantity` field to specify total items in a parcel.
+-   **ZimouAdapter**:
+    -   Implemented `cancelOrder()` via `DELETE /v3/packages/bulk`.
+    -   Updated `getLabel()` to return `LabelType::PDF_URL` (direct `print_url` from package resource) for improved efficiency.
+    -   Added support for `quantity_items` in the order payload.
+-   **ZrExpressNewAdapter**:
+    -   Dynamic territory resolution — added `searchTerritory()` to resolve UUIDs via API, reducing reliance on static maps.
+    -   Flexible `toWilayaId` — now accepts string UUIDs directly, allowing bypass of numeric wilaya code mapping.
+    -   Implemented `cancelOrder()` via `DELETE /api/v1/parcels/{id}`.
+    -   Refined territory parsing: automatically falls back to city UUID for district if only a UUID is provided in `toWilayaId`.
+    -   Improved error reporting and standardized recipient name formatting.
+
 ## [1.1.0] - 2026-03-25
 
 ### Added

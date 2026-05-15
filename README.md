@@ -92,7 +92,7 @@ Every Algerian courier has a different API shape, different field names, and dif
 | `getCreateOrderValidationRules()` |         ✅         |   ✅    |          ✅           |       ✅       |      ✅       |            ✅            |
 | `createOrder()`                   |         ✅         |   ✅    |          ✅           |       ✅       |      ✅       |            ✅            |
 | `getOrder()`                      |         ✅         |   ✅    |          ✅           |    ✅ \*\*     |   ✅ \*\*\*   |            ✅            |
-| `cancelOrder()`                   |         ➖         |   ➖    |          ➖           |       ➖       |      ✅       |            ➖            |
+| `cancelOrder()`                   |         ➖         |   ➖    |          ➖           |       ✅       |      ✅       |            ➖            |
 | `getLabel()`                      |         ✅         |   ✅    |          ❌           |       ✅       |      ✅       |            ✅            |
 | `createProduct()` +               |         ❌         |   ✅    |          ❌           |       ❌       |      ❌       |            ❌            |
 
@@ -197,7 +197,8 @@ $order = Courier::provider(Provider::ZIMOU)->createOrder(
         productDescription: 'Smartphone Samsung Galaxy S25',
         price:              120000.0,
         deliveryType:       DeliveryType::HOME,
-        weight: 1, // required for zimou
+        weight:             1.5,
+        quantity:           1, // optional — number of items
     )
 );
 
@@ -242,17 +243,26 @@ echo $order->raw['delivery_company_tracking_code'];  // "YALI-99999"
 
 ZR Express NEW identifies delivery addresses by UUID territory IDs (not integer wilaya codes).
 
-The `cityTerritoryId` (wilaya level) is now **auto-resolved** from `toWilayaId` using a built-in static map covering all 54 supported wilayas. You only need to supply the district UUID:
+The `cityTerritoryId` (wilaya level) is **auto-resolved** from `toWilayaId` using a dynamic search or built-in map. You only need to supply the district UUID:
 
 ```php
 new CreateOrderData(
-    toWilayaId: 9,   // Blida → auto-resolved to ZR Express territory UUID
+    toWilayaId: 9,   // Blida → auto-resolved to UUID
     notes: 'zr_district:8d0b6cd9-7712-47d2-9ea4-460246494c32',
     // ...
 )
 ```
 
-If you need to override the city UUID explicitly, the full format still works:
+If you have the UUID for the city, you can pass it directly to `toWilayaId`:
+
+```php
+new CreateOrderData(
+    toWilayaId: 'f72674e2-45a8-444d-b65b-6c905e94b123', // Blida UUID
+    // district defaults to the same UUID if zr_district is omitted
+)
+```
+
+Otherwise, the full notes format still works:
 `"zr_city:{uuid}|zr_district:{uuid}|optional note"`
 
 ### ZR Express NEW — cancelOrder
@@ -297,11 +307,8 @@ use Uften\Courier\Enums\LabelType;
 
 $label = Courier::provider(Provider::ZIMOU)->getLabel('2632165');
 
-// Zimou always returns PDF_BASE64
-return response($label->decodePdf(), 200, [
-    'Content-Type'        => 'application/pdf',
-    'Content-Disposition' => 'inline; filename="label.pdf"',
-]);
+// Zimou returns PDF_URL
+return redirect($label->url);
 ```
 
 ---

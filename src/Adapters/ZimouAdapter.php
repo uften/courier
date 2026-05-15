@@ -6,6 +6,7 @@ namespace Uften\Courier\Adapters;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\RequestOptions;
+
 use Uften\Courier\Data\CreateOrderData;
 use Uften\Courier\Data\Credentials\TokenCredentials;
 use Uften\Courier\Data\LabelData;
@@ -351,12 +352,16 @@ final class ZimouAdapter extends AbstractAdapter
             ];
         }
 
+        if ($data->quantity !== null && $data->quantity > 0) {
+            $payload['quantity_items'] = $data->quantity;
+        }
+
         $response = $this->post('v3/packages', $payload);
 
         // Zimou returns error:1 even on HTTP 201 for validation failures
         if (isset($response['error']) && (int) $response['error'] === 1) {
             throw new CourierException(
-                'Zimou Express rejected the order: '.($response['message'] ?? 'Unknown error'),
+                'Zimou Express rejected the order: ' . ($response['message'] ?? 'Unknown error'),
             );
         }
 
@@ -416,45 +421,70 @@ final class ZimouAdapter extends AbstractAdapter
     }
 
     /**
-     * Retrieve the shipping label PDF for a package.
+     * Retrieve the shipping label URL for a package.
      *
-     * Zimou returns the PDF as a raw string from POST /v3/packages/labels.
-     * We base64-encode it and return a PDF_BASE64 LabelData.
+     * Uses GET /v3/packages/{id} and extracts the `print_url` field
+     * which provides a direct link to the label PDF.
+     *
+     * The /packages/status endpoint does NOT return print_url, so we
+     * always resolve to the numeric package ID and fetch the full resource.
      */
     public function getLabel(string $trackingNumber): LabelData
     {
-        $rawPdf = $this->requestRaw('POST', 'v3/packages/labels', [
-            RequestOptions::JSON => [
-                'packages' => [$trackingNumber],
-            ],
-        ]);
+        // Always use the full package resource endpoint which includes print_url
+        if (ctype_digit($trackingNumber)) {
+            $response = $this->get("v3/packages/{$trackingNumber}");
+            $data = $response['data'] ?? $response;
+        } else {
+            // Non-numeric: resolve to package ID via getOrder, then re-fetch
+            $order = $this->getOrder($trackingNumber);
+            $packageId = $order->raw['id'] ?? null;
 
-        if ($rawPdf === '' || $rawPdf === 'null') {
+            if ($packageId) {
+                $response = $this->get("v3/packages/{$packageId}");
+                $data = $response['data'] ?? $response;
+            } else {
+                $data = $order->raw;
+            }
+        }
+
+        $printUrl = $data['print_url'] ?? null;
+
+        if (empty($printUrl)) {
             throw new CourierException(
-                "Zimou Express returned an empty label for [{$trackingNumber}].",
+                "Zimou Express returned no print_url for [{$trackingNumber}].",
             );
         }
 
-        // Zimou may return the PDF as raw bytes OR as a JSON-wrapped base64 string
-        if (str_starts_with(ltrim($rawPdf), '{') || str_starts_with(ltrim($rawPdf), '"')) {
-            // JSON-wrapped — decode and use as-is
-            $decoded = json_decode($rawPdf, associative: true);
-            $b64 = is_string($decoded) ? $decoded : ($decoded['data'] ?? $rawPdf);
-
-            return new LabelData(
-                provider: Provider::ZIMOU,
-                trackingNumber: $trackingNumber,
-                type: LabelType::PDF_BASE64,
-                base64: $b64,
-            );
-        }
-
-        // Raw binary PDF bytes
-        return LabelData::fromBase64(
+        return LabelData::fromUrl(
             Provider::ZIMOU,
             $trackingNumber,
-            base64_encode($rawPdf),
+            $printUrl,
+            LabelType::PDF_URL,
         );
+    }
+
+    /**
+     * Cancel (delete) a package.
+     *
+     * POST /api/v3/packages/bulk-delete
+     */
+    public function cancelOrder(string $trackingNumber): bool
+    {
+
+        try {
+            $response = $this->request('DELETE', 'v3/packages/bulk', [
+                RequestOptions::JSON => [
+                    'tracking_codes' => [$trackingNumber],
+                ],
+            ]);
+
+            return (bool) ($response['success'] ?? true);
+        } catch (\Throwable $e) {
+            throw new CourierException(
+                "Zimou Express rejected the order: " . ($e->getMessage() ?? 'Unknown error'),
+            );
+        }
     }
 
     // -------------------------------------------------------------------------
@@ -525,7 +555,7 @@ final class ZimouAdapter extends AbstractAdapter
             trackingNumber: (string) ($raw['tracking_code'] ?? (string) ($raw['id'] ?? '')),
             provider: Provider::ZIMOU,
             status: $status,
-            recipientName: trim(($raw['client_first_name'] ?? '').' '.($raw['client_last_name'] ?? '')),
+            recipientName: trim(($raw['client_first_name'] ?? '') . ' ' . ($raw['client_last_name'] ?? '')),
             phone: (string) ($raw['client_phone'] ?? ''),
             address: (string) ($raw['address'] ?? ''),
             toWilayaId: $wilayaId,
@@ -557,7 +587,7 @@ final class ZimouAdapter extends AbstractAdapter
             trackingNumber: $trackingNumber,
             provider: Provider::ZIMOU,
             status: $status,
-            recipientName: trim(($raw['client_first_name'] ?? '').' '.($raw['client_last_name'] ?? '')),
+            recipientName: trim(($raw['client_first_name'] ?? '') . ' ' . ($raw['client_last_name'] ?? '')),
             phone: (string) ($raw['client_phone'] ?? ''),
             address: (string) ($raw['address'] ?? ''),
             toWilayaId: (int) ($raw['wilaya_id'] ?? 0),

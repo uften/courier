@@ -27,18 +27,12 @@ use Uften\Courier\Exceptions\OrderNotFoundException;
  * Base    : https://api.zrexpress.app
  * Docs    : https://docs.zrexpress.app/reference/createparcelendpoint
  *
- * -------------------------------------------------------------------------
- * Territory UUIDs convention
- * -------------------------------------------------------------------------
- * ZR Express NEW uses UUID territory IDs for delivery address.
- * The adapter can resolve the city UUID automatically from the integer
- * `toWilayaId` field using the built-in WILAYA_UUID_MAP (all 54 wilayas).
- * Only the district (commune) UUID still needs to be supplied via notes:
+ * The adapter dynamically resolves territory UUIDs via the API.
+ * The district (commune) UUID can be supplied via notes:
  *
  *   "zr_district:{districtUUID}|Optional real note"
  *
- * If you also need to override the city UUID (e.g. for a commune that
- * belongs to a different wilaya than the code suggests), you can provide:
+ * If you also need to override the city UUID, you can provide:
  *
  *   "zr_city:{cityUUID}|zr_district:{districtUUID}|Optional real note"
  *
@@ -160,132 +154,9 @@ final class ZrExpressNewAdapter extends AbstractAdapter
         'remboursement' => TrackingStatus::EXCEPTION,
     ];
 
-    // -------------------------------------------------------------------------
-    // Wilaya UUID map  (integer code → ZR Express territory UUID)
-    // Source: GET /api/v1/territories/search — static snapshot from Wilayas.json
-    // Codes match standard Algerian wilaya numbering (1-58, with gaps).
-    // -------------------------------------------------------------------------
+    // Territory maps removed as per refactoring requirements.
+    // Resolution is now handled dynamically via API in the service layer.
 
-    /** @var array<int, string> */
-    private const array WILAYA_UUID_MAP = [
-        1 => '6e978fc5-f20a-4b5f-9adf-61dd21a7672a', // Adrar
-        2 => '981f136a-996f-463e-a536-8e643daab193', // Chlef
-        3 => '00b5ef4b-ae2e-4b7f-bd26-70c1a376b69b', // Laghouat
-        4 => '37c70742-df6b-4019-981a-a16a29a14748', // Oum El Bouaghi
-        5 => 'a8c05822-e30a-4d5a-bcb3-3b3bb23c079b', // Batna
-        6 => '295585ad-4cf4-4b7e-b276-9bb62d019749', // Bejaia
-        7 => '796e70df-1102-44da-9582-2da66ead2ba6', // Biskra
-        8 => 'e740c188-2bbc-4206-8999-302b17dc0e4b', // Bechar
-        9 => 'a7e764cf-e9ca-4c1f-8232-89852d102aec', // Blida
-        10 => 'a1f0229c-4f34-40aa-9238-fadde6757cba', // Bouira
-        11 => '38560f06-e049-4fd2-9664-a655e552b517', // Tamanrasset
-        12 => '5afdfab6-e505-4691-abc7-5e8bd79afad5', // Tebessa
-        13 => '53c9e062-9c4e-4c77-8b71-55eabf887f83', // Tlemcen
-        14 => 'ada5bb27-ffe5-4977-a917-3105c2b3d9c6', // Tiaret
-        15 => '5bef8e95-fad8-4a15-95f0-8d6f5c80f69e', // Tizi Ouzou
-        16 => 'd134c182-7dac-4655-9d9b-bbdb62aa2ec4', // Alger
-        17 => '9ee8eac2-77e5-4d70-ac49-bde455d06bee', // Djelfa
-        18 => 'dc851e52-55b2-4beb-a7f1-79d4e73e9458', // Jijel
-        19 => '56ee938d-7887-408e-8731-364d07ad3594', // Setif
-        20 => '27b2042a-77f8-4c91-b62d-60934fa0daca', // Saida
-        21 => 'a9df7e26-1086-4319-8a93-19969c99c89b', // Skikda
-        22 => '2cec2b2a-cc37-480a-9183-59fdfdb65cd4', // Sidi Bel Abbes
-        23 => '3fd318e8-7c24-480c-a106-21f6c842583d', // Annaba
-        24 => '2d1e61ff-e2af-4b4d-a592-0a6436c5fffd', // Guelma
-        25 => 'e9a1e9cf-8475-4768-94cc-0888d094ff47', // Constantine
-        26 => '0e0f2d43-6d78-47dd-8bb7-0f2771cb97ff', // Medea
-        27 => 'd7175ca6-6dd7-4dfb-a399-d388e782473a', // Mostaganem
-        28 => '75ca308d-ab36-44e2-9702-2e2300a57b8c', // MSila
-        29 => 'a17a6482-3f48-4948-aaf2-8a653c4c1110', // Mascara
-        30 => 'ada333a0-708d-476e-a97d-fd70fe661b09', // Ouargla
-        31 => 'e772eb46-276a-4f41-bae7-3b67e1bdc616', // Oran
-        32 => 'dca8b699-ce8b-4ad7-b8f2-560e63911383', // El Bayadh
-        34 => '80d1b557-03b2-4073-a8c2-89a8712a7fc8', // Bordj Bou Arreridj
-        35 => 'f823492c-f79d-4c2d-befe-933bf9917a65', // Boumerdes
-        36 => 'e6f4b09c-f63e-42af-92bc-dab9b422c34d', // El Tarf
-        38 => 'fb1a9f7a-81a2-4825-af92-79f9d187637f', // Tissemsilt
-        39 => 'cd82549a-b1f7-48c1-9a25-2f3f05b80b1d', // El Oued
-        40 => 'd4549528-8327-4a3f-9732-5a5462c84b8d', // Khenchela
-        41 => '56d30b7a-465a-462c-bc2a-3e132c89be63', // Souk Ahras
-        42 => '1435179a-6dbb-4d9c-a186-c521b2a57319', // Tipaza
-        43 => '0c8476c5-bbe4-46e4-80e5-67d3501195cc', // Mila
-        44 => '8d2d130f-460c-4867-85ef-641341a4d586', // Ain Defla
-        45 => 'ecdf0888-0470-4b2f-beb8-24c99b6fc9cb', // Naama
-        46 => 'fc460ec5-3e71-489c-b95b-e5301ea68341', // Ain Temouchent
-        47 => 'e7b51620-74f4-4748-85c5-216fb9b01b03', // Ghardaia
-        48 => 'ad58c5ee-868d-4acb-8f03-409f97a10370', // Relizane
-        49 => 'bcb30485-37b5-4135-a508-acad8a8a9cf8', // Timimoun
-        51 => '0f2dab00-094c-412c-a7d0-ebd0268d3d3c', // Ouled Djellal
-        52 => 'ba12c65c-de9e-4f30-a449-6ba0b27dd7d7', // Beni Abbes
-        53 => '7c752560-8412-4e11-8c75-ed7cd9c22be2', // In Salah
-        54 => 'f30136dc-3012-4ac7-912c-33eab37393a9', // In Guezzam
-        55 => '442d8a1c-2e12-4a8a-9c7e-8618aac20280', // Touggourt
-        57 => 'eabb6505-5eef-479f-b6a3-36ba282d5237', // El Meghaier
-        58 => '3d19d427-08f3-492c-a1d0-e7ace3516ed2', // El Menia
-    ];
-
-    /**
-     * Reverse map: territory UUID → integer wilaya code.
-     * Used when hydrating rates/orders from the API response.
-     *
-     * @var array<string, int>
-     */
-    private const array WILAYA_CODE_MAP = [
-        '6e978fc5-f20a-4b5f-9adf-61dd21a7672a' => 1,
-        '981f136a-996f-463e-a536-8e643daab193' => 2,
-        '00b5ef4b-ae2e-4b7f-bd26-70c1a376b69b' => 3,
-        '37c70742-df6b-4019-981a-a16a29a14748' => 4,
-        'a8c05822-e30a-4d5a-bcb3-3b3bb23c079b' => 5,
-        '295585ad-4cf4-4b7e-b276-9bb62d019749' => 6,
-        '796e70df-1102-44da-9582-2da66ead2ba6' => 7,
-        'e740c188-2bbc-4206-8999-302b17dc0e4b' => 8,
-        'a7e764cf-e9ca-4c1f-8232-89852d102aec' => 9,
-        'a1f0229c-4f34-40aa-9238-fadde6757cba' => 10,
-        '38560f06-e049-4fd2-9664-a655e552b517' => 11,
-        '5afdfab6-e505-4691-abc7-5e8bd79afad5' => 12,
-        '53c9e062-9c4e-4c77-8b71-55eabf887f83' => 13,
-        'ada5bb27-ffe5-4977-a917-3105c2b3d9c6' => 14,
-        '5bef8e95-fad8-4a15-95f0-8d6f5c80f69e' => 15,
-        'd134c182-7dac-4655-9d9b-bbdb62aa2ec4' => 16,
-        '9ee8eac2-77e5-4d70-ac49-bde455d06bee' => 17,
-        'dc851e52-55b2-4beb-a7f1-79d4e73e9458' => 18,
-        '56ee938d-7887-408e-8731-364d07ad3594' => 19,
-        '27b2042a-77f8-4c91-b62d-60934fa0daca' => 20,
-        'a9df7e26-1086-4319-8a93-19969c99c89b' => 21,
-        '2cec2b2a-cc37-480a-9183-59fdfdb65cd4' => 22,
-        '3fd318e8-7c24-480c-a106-21f6c842583d' => 23,
-        '2d1e61ff-e2af-4b4d-a592-0a6436c5fffd' => 24,
-        'e9a1e9cf-8475-4768-94cc-0888d094ff47' => 25,
-        '0e0f2d43-6d78-47dd-8bb7-0f2771cb97ff' => 26,
-        'd7175ca6-6dd7-4dfb-a399-d388e782473a' => 27,
-        '75ca308d-ab36-44e2-9702-2e2300a57b8c' => 28,
-        'a17a6482-3f48-4948-aaf2-8a653c4c1110' => 29,
-        'ada333a0-708d-476e-a97d-fd70fe661b09' => 30,
-        'e772eb46-276a-4f41-bae7-3b67e1bdc616' => 31,
-        'dca8b699-ce8b-4ad7-b8f2-560e63911383' => 32,
-        '80d1b557-03b2-4073-a8c2-89a8712a7fc8' => 34,
-        'f823492c-f79d-4c2d-befe-933bf9917a65' => 35,
-        'e6f4b09c-f63e-42af-92bc-dab9b422c34d' => 36,
-        'fb1a9f7a-81a2-4825-af92-79f9d187637f' => 38,
-        'cd82549a-b1f7-48c1-9a25-2f3f05b80b1d' => 39,
-        'd4549528-8327-4a3f-9732-5a5462c84b8d' => 40,
-        '56d30b7a-465a-462c-bc2a-3e132c89be63' => 41,
-        '1435179a-6dbb-4d9c-a186-c521b2a57319' => 42,
-        '0c8476c5-bbe4-46e4-80e5-67d3501195cc' => 43,
-        '8d2d130f-460c-4867-85ef-641341a4d586' => 44,
-        'ecdf0888-0470-4b2f-beb8-24c99b6fc9cb' => 45,
-        'fc460ec5-3e71-489c-b95b-e5301ea68341' => 46,
-        'e7b51620-74f4-4748-85c5-216fb9b01b03' => 47,
-        'ad58c5ee-868d-4acb-8f03-409f97a10370' => 48,
-        'bcb30485-37b5-4135-a508-acad8a8a9cf8' => 49,
-        '0f2dab00-094c-412c-a7d0-ebd0268d3d3c' => 51,
-        'ba12c65c-de9e-4f30-a449-6ba0b27dd7d7' => 52,
-        '7c752560-8412-4e11-8c75-ed7cd9c22be2' => 53,
-        'f30136dc-3012-4ac7-912c-33eab37393a9' => 54,
-        '442d8a1c-2e12-4a8a-9c7e-8618aac20280' => 55,
-        'eabb6505-5eef-479f-b6a3-36ba282d5237' => 57,
-        '3d19d427-08f3-492c-a1d0-e7ace3516ed2' => 58,
-    ];
 
     public function __construct(
         private readonly ZrExpressNewCredentials $credentials,
@@ -375,9 +246,7 @@ final class ZrExpressNewAdapter extends AbstractAdapter
             }
 
             // Resolve the integer wilaya code
-            $wilayaCode = isset($rate['toTerritoryCode']) && $rate['toTerritoryCode'] !== null
-                ? (int) $rate['toTerritoryCode']
-                : self::WILAYA_CODE_MAP[$rate['toTerritoryId'] ?? ''] ?? 0;
+            $wilayaCode = (int) ($rate['toTerritoryCode'] ?? 0);
 
             if ($wilayaCode === 0) {
                 continue; // Could not resolve wilaya code — skip
@@ -466,24 +335,22 @@ final class ZrExpressNewAdapter extends AbstractAdapter
         if ($districtTerritoryId === null) {
             throw new CourierException(
                 'ZR Express NEW requires a district territory UUID. '
-                .'Pass it via CreateOrderData::$notes: '
-                .'"zr_district:{uuid}|optional note". '
-                .'The city UUID is auto-resolved from toWilayaId when possible.',
+                    . 'Pass it via CreateOrderData::$notes: "zr_district:{uuid}|..." '
+                    . 'or ensure it is resolved in the service layer.',
             );
         }
 
         if ($cityTerritoryId === null) {
             throw new CourierException(
                 'ZR Express NEW requires a city territory UUID. '
-                .'toWilayaId '.($data->toWilayaId ?? 'null').' is not in the wilaya map. '
-                .'Provide it explicitly: "zr_city:{uuid}|zr_district:{uuid}|optional note".',
+                    . 'Ensure it is resolved via API or provided explicitly in notes.',
             );
         }
 
         $payload = [
             'customer' => [
                 'customerId' => $this->randomUuid(),
-                'name' => trim($data->firstName.' '.$data->lastName),
+                'name' => trim($data->firstName . ' ' . $data->lastName),
                 'phone' => [
                     'number1' => $data->phone,
                     'number2' => $data->phoneAlt,
@@ -596,8 +463,6 @@ final class ZrExpressNewAdapter extends AbstractAdapter
         $response = $this->post(
             'api/v1/parcels/labels/individual',
             ['trackingNumbers' => [$trackingNumber]],
-            // Send apiKey as Bearer token in addition to X-Api-Key
-            ['Authorization' => "Bearer {$this->credentials->apiKey}"],
         );
 
         $labelFiles = $response['parcelLabelFiles'] ?? [];
@@ -632,31 +497,61 @@ final class ZrExpressNewAdapter extends AbstractAdapter
         );
     }
 
+    /**
+     * Search for a territory UUID by name and level.
+     *
+     * @param string $name
+     * @param string $level 'wilaya' or 'commune'
+     * @param string|null $parentId UUID of the parent territory
+     * @return string|null UUID of the territory if found
+     */
+    public function searchTerritory(string $name, string $level = 'wilaya', ?string $parentId = null): ?string
+    {
+        $filters = [
+            [
+                'field' => 'name',
+                'operator' => 'eq',
+                'value' => $name,
+            ],
+            [
+                'field' => 'level',
+                'operator' => 'eq',
+                'value' => $level,
+            ],
+        ];
+
+        if ($parentId) {
+            $filters[] = [
+                'field' => 'parentId',
+                'operator' => 'eq',
+                'value' => $parentId,
+            ];
+        }
+
+        $payload = [
+            'advancedFilter' => [
+                'logic' => 'and',
+                'filters' => $filters,
+            ],
+            'pageNumber' => 1,
+            'pageSize' => 1,
+        ];
+
+        try {
+            $response = $this->post('api/v1/territories/search', $payload);
+
+            return $response['items'][0]['id'] ?? null;
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
     // -------------------------------------------------------------------------
     // Public helpers (ZR Express NEW–specific)
     // -------------------------------------------------------------------------
 
-    /**
-     * Resolve a wilaya integer code to its ZR Express territory UUID.
-     *
-     * Useful when building the notes convention string programmatically:
-     *
-     * ```php
-     * $cityUuid = $adapter->resolveCityUuid(16); // Alger
-     * ```
-     */
-    public function resolveCityUuid(int $wilayaCode): ?string
-    {
-        return self::WILAYA_UUID_MAP[$wilayaCode] ?? null;
-    }
+    // Dynamic resolution via API search preferred over static mapping.
 
-    /**
-     * Resolve a ZR Express territory UUID to its integer wilaya code.
-     */
-    public function resolveWilayaCode(string $territoryUuid): ?int
-    {
-        return self::WILAYA_CODE_MAP[$territoryUuid] ?? null;
-    }
 
     // -------------------------------------------------------------------------
     // Private helpers
@@ -673,7 +568,7 @@ final class ZrExpressNewAdapter extends AbstractAdapter
      * @return array{0: string|null, 1: string|null, 2: string|null}
      *                                                               [cityTerritoryId, districtTerritoryId, cleanNote]
      */
-    private function parseTerritoryIds(?string $notes, ?int $toWilayaId = null): array
+    private function parseTerritoryIds(?string $notes, int|string|null $toWilayaId = null): array
     {
         $cityId = null;
         $districtId = null;
@@ -693,7 +588,14 @@ final class ZrExpressNewAdapter extends AbstractAdapter
 
         // Auto-resolve city UUID from wilaya code if not explicitly provided
         if ($cityId === null && $toWilayaId !== null) {
-            $cityId = self::WILAYA_UUID_MAP[$toWilayaId] ?? null;
+            if ($this->isUuid((string) $toWilayaId)) {
+                // If the user supplied a string UUID, use it directly.
+                $cityId = (string) $toWilayaId;
+                // As per user instruction, fallback districtId to cityId if omitted.
+                if ($districtId === null) {
+                    $districtId = $cityId;
+                }
+            }
         }
 
         return [
@@ -740,12 +642,6 @@ final class ZrExpressNewAdapter extends AbstractAdapter
         // cityTerritoryCode is the integer wilaya code (1-58)
         $wilayaCode = (int) ($this->dig($raw, 'deliveryAddress', 'cityTerritoryCode') ?? 0);
 
-        // If code not present, try to resolve from the territory UUID
-        if ($wilayaCode === 0) {
-            $cityUuid = (string) ($this->dig($raw, 'deliveryAddress', 'cityTerritoryId') ?? '');
-            $wilayaCode = self::WILAYA_CODE_MAP[$cityUuid] ?? 0;
-        }
-
         $commune = (string) ($this->dig($raw, 'deliveryAddress', 'district') ?? '');
         $city = (string) ($this->dig($raw, 'deliveryAddress', 'city') ?? '');
         $customerName = (string) ($this->dig($raw, 'customer', 'name') ?? '');
@@ -765,8 +661,8 @@ final class ZrExpressNewAdapter extends AbstractAdapter
             shippingFee: isset($raw['deliveryPrice']) ? (float) $raw['deliveryPrice'] : null,
             rawStatus: $stateName,
             notes: $this->dig($raw, 'situation', 'name') !== null
-                            ? (string) $this->dig($raw, 'situation', 'name')
-                            : null,
+                ? (string) $this->dig($raw, 'situation', 'name')
+                : null,
             createdAt: $this->parseDate($raw['createdAt'] ?? null),
             updatedAt: $this->parseDate($raw['lastStateUpdateAt'] ?? null),
             raw: $raw,

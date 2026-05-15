@@ -58,7 +58,7 @@ Every piece of data entering or leaving an adapter is a typed DTO. No raw arrays
 
 ### `Provider`
 
-29 cases across 5 engine groups. The enum is the single source of truth for base URL, adapter class, credential requirements, and display metadata.
+30 cases across 6 engine groups. The enum is the single source of truth for base URL, adapter class, credential requirements, and display metadata.
 
 ```
 Yalidine engine     : YALIDINE, YALITEC  (2)
@@ -165,6 +165,7 @@ new CreateOrderData(
     length:             ?float,        // cm
     width:              ?float,        // cm
     height:             ?float,        // cm
+    quantity:           ?int,          // number of items
 );
 ```
 
@@ -357,8 +358,8 @@ Utility methods: `dig(array, string ...$keys): mixed` (safe nested access), `par
 | `YalidineAdapter`     | Yalidine       |       20 strings       |   ✅ URL + Base64   | Accepts `Provider` param — covers YALIDINE and YALITEC. `getRates()` requires `$fromWilayaId`.             |
 | `MaystroAdapter`      | Standalone     |       15 strings       | ✅ Base64 (raw PDF) | Auth: `Token <token>`. Delivery type mapping is inverted (0=home, 1=stop desk). Exposes `createProduct()`. |
 | `ProcolisAdapter`     | Procolis       |       14 strings       |      ❌ throws      | Covers PROCOLIS and ZREXPRESS via `$resolvedProvider` param. Auth params appended to each request.         |
-| `ZrExpressNewAdapter` | ZR Express NEW | 20+ slugs + PascalCase |      ❌ throws      | See below.                                                                                                 |
-| `ZimouAdapter`        | Zimou (router) |    54 IDs + strings    | ✅ Base64 (raw PDF) | See below.                                                                                                 |
+| `ZrExpressNewAdapter` | ZR Express NEW | 20+ slugs + PascalCase |   ✅ HTML URL (SAS)   | See below.                                                                                                 |
+| `ZimouAdapter`        | Zimou (router) |    54 IDs + strings    |     ✅ PDF URL      | See below.                                                                                                 |
 | `EcotrackAdapter`     | Ecotrack       |       18 strings       |   ✅ URL + Base64   | Accepts `Provider` param — covers ECOTRACK + all 22 sub-providers by subdomain.                            |
 
 ---
@@ -380,7 +381,9 @@ The adapter performs both calls and always returns a fully populated `OrderData`
 
 **Territory UUIDs:**
 
-`cityTerritoryId` is now **auto-resolved** from `CreateOrderData::$toWilayaId` using the built-in wilaya map. The minimum notes format is:
+Territory IDs (wilaya level) are **dynamically resolved** from `CreateOrderData::$toWilayaId` using the API. If a numeric wilaya code (1-58) is provided, the adapter performs a search. If a string UUID is provided, it is used directly.
+
+The minimum notes format is:
 
 ```
 "zr_district:{districtUUID}"
@@ -433,9 +436,9 @@ new ZrExpressNewCredentials(
 )
 ```
 
-**WILAYA_UUID_MAP:**
+**WILAYA_UUID_MAP (Legacy):**
 
-A static map of all 54 wilaya codes (integers 1–58, with gaps for wilayas not yet registered in ZR Express NEW: 33, 37, 50, 56) to their territory UUIDs. Used internally by `createOrder()` to auto-resolve `cityTerritoryId` from `CreateOrderData::$toWilayaId`, removing the need to embed `zr_city:` in notes for standard wilaya deliveries.
+Static maps have been removed in favor of dynamic resolution via `api/v1/territories/search`. This ensures the adapter stays compatible with new territories added by ZR Express without package updates.
 
 **Status mapping strategy:**
 
@@ -496,6 +499,14 @@ $order->raw['delivery_company_tracking_code'];     // "YALI-99999"
 | `DeliveryType::HOME` (default)                                       | `"Express"`      |
 | `DeliveryType::HOME` + notes prefix `"zimou_delivery_type:Flexible"` | `"Flexible"`     |
 | `DeliveryType::STOP_DESK`                                            | `"Point relais"` |
+
+**`getLabel()`:**
+
+Returns `LabelType::PDF_URL` extracted from the `print_url` field of the package resource. This direct link is more efficient than retrieving raw base64 bytes.
+
+**`cancelOrder()`:**
+
+Fully supported via `DELETE /v3/packages/bulk`. Accepts either a package ID or a tracking number.
 
 **Error handling:**
 
