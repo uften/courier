@@ -4,8 +4,12 @@ declare(strict_types=1);
 
 namespace Uften\Courier;
 
+use Uften\Courier\Adapters\EcomDeliveryAdapter;
 use Uften\Courier\Adapters\EcotrackAdapter;
+use Uften\Courier\Adapters\ElogistiaAdapter;
 use Uften\Courier\Adapters\MaystroAdapter;
+use Uften\Courier\Adapters\NearDeliveryAdapter;
+use Uften\Courier\Adapters\NoestAdapter;
 use Uften\Courier\Adapters\ProcolisAdapter;
 use Uften\Courier\Adapters\YalidineAdapter;
 use Uften\Courier\Adapters\ZimouAdapter;
@@ -132,7 +136,7 @@ final class CourierManager
 
         return match (true) {
 
-            // Yalidine engine — Yalidine and Yalitec
+            // Yalidine engine — Yalidine, Yalitec, Easy&Speed, Economiqua, GuepEx, We Can
             $provider->isYalidineEngine() => new YalidineAdapter(
                 credentials: $this->buildYalidineCredentials($provider, $creds),
                 provider: $provider,
@@ -143,8 +147,8 @@ final class CourierManager
                 credentials: $this->buildTokenCredentials($provider, $creds),
             ),
 
-            // Procolis engine — Procolis and ZR Express
-            $provider === Provider::PROCOLIS || $provider === Provider::ZREXPRESS => new ProcolisAdapter(
+            // Procolis engine — Procolis, ZRExpress, ABEX, Colilog, Flash, Leopard
+            $provider->isProcolisEngine() => new ProcolisAdapter(
                 credentials: $this->buildProcolisCredentials($provider, $creds),
                 resolvedProvider: $provider,
             ),
@@ -159,7 +163,21 @@ final class CourierManager
                 credentials: $this->buildZrExpressNewCredentials($provider, $creds),
             ),
 
-            // Ecotrack engine — generic base + all 22 branded sub-providers
+            // Independent native adapters
+            $provider === Provider::ELOGISTIA => new ElogistiaAdapter(
+                credentials: $this->buildTokenCredentials($provider, $creds),
+            ),
+            $provider === Provider::NEAR_DELIVERY => new NearDeliveryAdapter(
+                credentials: $this->buildTokenCredentials($provider, $creds),
+            ),
+            $provider === Provider::NOEST => new NoestAdapter(
+                credentials: $this->buildTokenCredentials($provider, $creds),
+            ),
+            $provider === Provider::ECOM_DELIVERY => new EcomDeliveryAdapter(
+                credentials: $this->buildTokenCredentials($provider, $creds),
+            ),
+
+            // Ecotrack engine — generic base + 71 branded sub-providers
             $provider->isEcotrackEngine() => new EcotrackAdapter(
                 credentials: $this->buildTokenCredentials($provider, $creds),
                 provider: $provider,

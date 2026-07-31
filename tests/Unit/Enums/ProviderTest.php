@@ -11,8 +11,8 @@ use Uften\Courier\Enums\Provider;
 
 describe('Provider enum', function (): void {
 
-    it('has 30 total cases', function (): void {
-        expect(Provider::cases())->toHaveCount(30);
+    it('has 96 total cases', function (): void {
+        expect(Provider::cases())->toHaveCount(96);
     });
 
     it('has correct backing values for key providers', function (): void {

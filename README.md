@@ -18,14 +18,18 @@ Every Algerian courier has a different API shape, different field names, and dif
 
 ---
 
-## Supported Providers — 30 total
+## Supported Providers — 96 total
 
-### Yalidine engine
+### Yalidine engine (6 providers)
 
-| Provider | Enum                 | Base URL           |
-| -------- | -------------------- | ------------------ |
-| Yalidine | `Provider::YALIDINE` | `api.yalidine.app` |
-| Yalitec  | `Provider::YALITEC`  | `api.yalitec.me`   |
+| Provider        | Enum                       | Base URL               | Logo                 |
+| --------------- | -------------------------- | ---------------------- | -------------------- |
+| Yalidine        | `Provider::YALIDINE`       | `api.yalidine.app`     | `yalidine.png`       |
+| Yalitec         | `Provider::YALITEC`        | `api.yalitec.me`       | `yalitec.png`        |
+| Easy and Speed  | `Provider::EASY_AND_SPEED` | `api.easyandspeed.app` | `easy-and-speed.png` |
+| Economiqua      | `Provider::ECONOMIQUA`     | `api.economiqua.app`   | `economiqua.png`     |
+| GuepEx Express  | `Provider::GUEPEX`         | `api.guepex.app`       | `guepex.png`         |
+| We Can Services | `Provider::WE_CAN`         | `api.wecanservices.me` | `we-can.png`         |
 
 ### Maystro (standalone)
 
@@ -109,7 +113,7 @@ Every Algerian courier has a different API shape, different field names, and dif
 ## Requirements
 
 -   PHP **8.4+**
--   Laravel **11** or **12**
+-   Laravel **11**, **12**, **13**
 
 ## Installation
 
@@ -122,6 +126,14 @@ Publish the config:
 ```bash
 php artisan vendor:publish --tag=courier-config
 ```
+
+Publish carrier logo assets:
+
+```bash
+php artisan vendor:publish --tag=courier-assets
+```
+
+Carrier logos will be published to `public/vendor/courier/logo/` and can be retrieved programmatically using `$provider->getLogoUrl()` or `$provider->getLogoFileName()`.
 
 ---
 

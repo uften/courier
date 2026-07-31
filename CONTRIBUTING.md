@@ -46,8 +46,8 @@ Then update **all four** `match` expressions inside the enum:
 - `isEcotrackEngine()` — if your provider is **not** Ecotrack-based, add `&& $this !== self::MYCARRIER` to exclude it from the Ecotrack catch-all.
 - `requiresApiId()` — only add a `true` branch if your provider requires a separate `id` field alongside `token` (Procolis engine pattern).
 
-> **Engine groups:** Yalidine (2), Maystro (1), Procolis/ZR Express legacy (2), ZR Express NEW (1), Zimou (1), Ecotrack (23). Total: 30.
-> If your provider shares an existing engine (e.g. a new Ecotrack sub-provider), you only need to add the enum case and metadata — no new adapter class is needed.
+> **Engine groups:** Yalidine (6), Maystro (1), Procolis engine (6), ZR Express NEW (1), Zimou (1), Independent (4), Ecotrack engine (72). Total: 96.
+> If your provider shares an existing engine (e.g. a new Ecotrack sub-provider or Yalidine clone), you only need to add the enum case, URL, logo filename, and metadata — no new adapter class is needed.
 
 ### 2. Add a Credentials DTO (if needed)
 

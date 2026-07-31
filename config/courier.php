@@ -17,14 +17,17 @@ return [
     |--------------------------------------------------------------------------
     |
     | Add credentials for each provider you use. All values should live in
-    | your .env — never hard-coded. Ecotrack sub-providers each need their
-    | own token even though they share the same API engine.
+    | your .env — never hard-coded.
     |
     | Engines:
-    |   yalidine_engine : yalidine, yalitec           → token + key
-    |   procolis_engine : procolis, zrexpress          → id + token
-    |   maystro         : maystro                      → token
-    |   ecotrack_engine : ecotrack + 22 sub-providers  → token each
+    |   yalidine_engine  : yalidine, yalitec, easy_and_speed, economiqua,
+    |                      guepex, we_can                       → token + key
+    |   procolis_engine  : procolis, zrexpress, abex, colilog,
+    |                      flash_delivery, leopard               → id + token
+    |   maystro          : maystro                               → token
+    |   ecotrack_engine  : ecotrack + 71 sub-providers           → token each
+    |   independent      : elogistia, near_delivery, noest,
+    |                      ecom_delivery                         → token
     |
     */
     'providers' => [
@@ -39,6 +42,22 @@ return [
         'yalitec' => [
             'token' => env('YALITEC_API_TOKEN'),
             'key' => env('YALITEC_API_KEY'),
+        ],
+        'easy_and_speed' => [
+            'token' => env('EASY_AND_SPEED_API_TOKEN'),
+            'key' => env('EASY_AND_SPEED_API_KEY'),
+        ],
+        'economiqua' => [
+            'token' => env('ECONOMIQUA_API_TOKEN'),
+            'key' => env('ECONOMIQUA_API_KEY'),
+        ],
+        'guepex' => [
+            'token' => env('GUEPEX_API_TOKEN'),
+            'key' => env('GUEPEX_API_KEY'),
+        ],
+        'we_can' => [
+            'token' => env('WE_CAN_API_TOKEN'),
+            'key' => env('WE_CAN_API_KEY'),
         ],
 
         // -----------------------------------------------------------------------
@@ -59,6 +78,22 @@ return [
             'id' => env('ZREXPRESS_ID'),
             'token' => env('ZREXPRESS_TOKEN'),
         ],
+        'abex' => [
+            'id' => env('ABEX_ID'),
+            'token' => env('ABEX_TOKEN'),
+        ],
+        'colilog' => [
+            'id' => env('COLILOG_ID'),
+            'token' => env('COLILOG_TOKEN'),
+        ],
+        'flash_delivery' => [
+            'id' => env('FLASH_DELIVERY_ID'),
+            'token' => env('FLASH_DELIVERY_TOKEN'),
+        ],
+        'leopard' => [
+            'id' => env('LEOPARD_ID'),
+            'token' => env('LEOPARD_TOKEN'),
+        ],
 
         // -----------------------------------------------------------------------
         // ZR Express NEW platform (api.zrexpress.app — NOT the legacy Procolis one)
@@ -76,6 +111,22 @@ return [
         ],
 
         // -----------------------------------------------------------------------
+        // Independent native adapters
+        // -----------------------------------------------------------------------
+        'elogistia' => [
+            'token' => env('ELOGISTIA_API_TOKEN'),
+        ],
+        'near_delivery' => [
+            'token' => env('NEAR_DELIVERY_API_TOKEN'),
+        ],
+        'noest' => [
+            'token' => env('NOEST_API_TOKEN'),
+        ],
+        'ecom_delivery' => [
+            'token' => env('ECOM_DELIVERY_API_TOKEN'),
+        ],
+
+        // -----------------------------------------------------------------------
         // Ecotrack engine — generic base
         // -----------------------------------------------------------------------
         'ecotrack' => [
@@ -83,7 +134,7 @@ return [
         ],
 
         // -----------------------------------------------------------------------
-        // Ecotrack-engine sub-providers (each has its own subdomain + token)
+        // Ecotrack-engine sub-providers — original 22
         // -----------------------------------------------------------------------
         'anderson' => [
             'token' => env('ANDERSON_API_TOKEN'),
@@ -150,6 +201,172 @@ return [
         ],
         'worldexpress' => [
             'token' => env('WORLDEXPRESS_API_TOKEN'),
+        ],
+
+        // -----------------------------------------------------------------------
+        // Ecotrack-engine sub-providers
+        // -----------------------------------------------------------------------
+        'alania_express' => [
+            'token' => env('ALANIA_EXPRESS_API_TOKEN'),
+        ],
+        'allo_livraison' => [
+            'token' => env('ALLO_LIVRAISON_API_TOKEN'),
+        ],
+        'amana_speed' => [
+            'token' => env('AMANA_SPEED_API_TOKEN'),
+        ],
+        'aranex' => [
+            'token' => env('ARANEX_API_TOKEN'),
+        ],
+        'areex_delivery' => [
+            'token' => env('AREEX_DELIVERY_API_TOKEN'),
+        ],
+        'atlas_express' => [
+            'token' => env('ATLAS_EXPRESS_API_TOKEN'),
+        ],
+        'bfk_express' => [
+            'token' => env('BFK_EXPRESS_API_TOKEN'),
+        ],
+        'boogi' => [
+            'token' => env('BOOGI_API_TOKEN'),
+        ],
+        'champion_logistics' => [
+            'token' => env('CHAMPION_LOGISTICS_API_TOKEN'),
+        ],
+        'chronorex' => [
+            'token' => env('CHRONOREX_API_TOKEN'),
+        ],
+        'cirta_express' => [
+            'token' => env('CIRTA_EXPRESS_API_TOKEN'),
+        ],
+        'colex' => [
+            'token' => env('COLEX_API_TOKEN'),
+        ],
+        'colireli' => [
+            'token' => env('COLIRELI_API_TOKEN'),
+        ],
+        'colizone' => [
+            'token' => env('COLIZONE_API_TOKEN'),
+        ],
+        'delivro_mail' => [
+            'token' => env('DELIVRO_MAIL_API_TOKEN'),
+        ],
+        'eco_rapide' => [
+            'token' => env('ECO_RAPIDE_API_TOKEN'),
+        ],
+        'el_guide' => [
+            'token' => env('EL_GUIDE_API_TOKEN'),
+        ],
+        'expedia_chrono' => [
+            'token' => env('EXPEDIA_CHRONO_API_TOKEN'),
+        ],
+        'fast_horse' => [
+            'token' => env('FAST_HORSE_API_TOKEN'),
+        ],
+        'fz_delivery' => [
+            'token' => env('FZ_DELIVERY_API_TOKEN'),
+        ],
+        'gs_ecommerce' => [
+            'token' => env('GS_ECOMMERCE_API_TOKEN'),
+        ],
+        'hdd_express' => [
+            'token' => env('HDD_EXPRESS_API_TOKEN'),
+        ],
+        'imir_logistics' => [
+            'token' => env('IMIR_LOGISTICS_API_TOKEN'),
+        ],
+        'jaguar_livraison' => [
+            'token' => env('JAGUAR_LIVRAISON_API_TOKEN'),
+        ],
+        'jo_express' => [
+            'token' => env('JO_EXPRESS_API_TOKEN'),
+        ],
+        'lihlih_express' => [
+            'token' => env('LIHLIH_EXPRESS_API_TOKEN'),
+        ],
+        'lynx' => [
+            'token' => env('LYNX_API_TOKEN'),
+        ],
+        'major_express' => [
+            'token' => env('MAJOR_EXPRESS_API_TOKEN'),
+        ],
+        'mars_express' => [
+            'token' => env('MARS_EXPRESS_API_TOKEN'),
+        ],
+        'mazaya_logistics' => [
+            'token' => env('MAZAYA_LOGISTICS_API_TOKEN'),
+        ],
+        'med_express' => [
+            'token' => env('MED_EXPRESS_API_TOKEN'),
+        ],
+        'navex_delivery' => [
+            'token' => env('NAVEX_DELIVERY_API_TOKEN'),
+        ],
+        'om_courrier' => [
+            'token' => env('OM_COURRIER_API_TOKEN'),
+        ],
+        'on_time_express' => [
+            'token' => env('ON_TIME_EXPRESS_API_TOKEN'),
+        ],
+        'ovred' => [
+            'token' => env('OVRED_API_TOKEN'),
+        ],
+        'pdex' => [
+            'token' => env('PDEX_API_TOKEN'),
+        ],
+        'quick_delivery' => [
+            'token' => env('QUICK_DELIVERY_API_TOKEN'),
+        ],
+        'red_ex' => [
+            'token' => env('RED_EX_API_TOKEN'),
+        ],
+        'rihal_express' => [
+            'token' => env('RIHAL_EXPRESS_API_TOKEN'),
+        ],
+        'rj_360' => [
+            'token' => env('RJ_360_API_TOKEN'),
+        ],
+        'rm_express' => [
+            'token' => env('RM_EXPRESS_API_TOKEN'),
+        ],
+        'rs_express' => [
+            'token' => env('RS_EXPRESS_API_TOKEN'),
+        ],
+        'ruta_express' => [
+            'token' => env('RUTA_EXPRESS_API_TOKEN'),
+        ],
+        'samex' => [
+            'token' => env('SAMEX_API_TOKEN'),
+        ],
+        'sbl_express' => [
+            'token' => env('SBL_EXPRESS_API_TOKEN'),
+        ],
+        'speed_mail' => [
+            'token' => env('SPEED_MAIL_API_TOKEN'),
+        ],
+        'sultan_colis' => [
+            'token' => env('SULTAN_COLIS_API_TOKEN'),
+        ],
+        'swift_express' => [
+            'token' => env('SWIFT_EXPRESS_API_TOKEN'),
+        ],
+        'tawsil_star' => [
+            'token' => env('TAWSIL_STAR_API_TOKEN'),
+        ],
+        'univer_delivery' => [
+            'token' => env('UNIVER_DELIVERY_API_TOKEN'),
+        ],
+        'vitrans' => [
+            'token' => env('VITRANS_API_TOKEN'),
+        ],
+        'weewee_delivery' => [
+            'token' => env('WEEWEE_DELIVERY_API_TOKEN'),
+        ],
+        'win_delivery' => [
+            'token' => env('WIN_DELIVERY_API_TOKEN'),
+        ],
+        'zinya_tec' => [
+            'token' => env('ZINYA_TEC_API_TOKEN'),
         ],
 
     ],

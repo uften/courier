@@ -7,6 +7,22 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ---
 
+## [1.3.0] - 2026-08-01
+
+### Added
+
+-   **61 New Courier Providers**:
+    -   **Yalidine engine clones (4)**: Easy and Speed (`EASY_AND_SPEED`), Economiqua (`ECONOMIQUA`), GuepEx Express (`GUEPEX`), We Can Services (`WE_CAN`).
+    -   **Procolis engine clones (4)**: ABEX Express (`ABEX`), Colilog Express (`COLILOG`), Flash Delivery (`FLASH_DELIVERY`), Leopard Express (`LEOPARD`).
+    -   **Ecotrack engine sub-providers (50)**: Alania, Allo Livraison, AMANA Speed, Aranex, Areex Delivery, Atlas Express, BFK Express, Boogi, Champion Logistics, Chronorex, Cirta Express, Colex, ColiReli, Colizone, Delivro Mail, Eco Rapide, El Guide, Expedia Chrono, Fast Horse, FZ Delivery, GS Ecommerce, HDD Express, Imir Logistics, Jaguar Livraison, Jo Express, LIH LIH Express, Lynx, Major Express, Mars Express, Mazaya Logistics, Med Express, Navex Delivery, Om Courrier, On Time Express, Ovred, PDEX, Quick Delivery, Red Ex, Rihal Express, RJ 360 Express, RM Express, RS Express, Ruta Express, Samex, SBL Express, Speed Mail, Sultan Colis, Swift Express, Tawsil Star, Univer Delivery, Vitrans, Wee Wee Delivery, Win Delivery, Zinya Tec.
+    -   **Independent native adapters (4)**: `ElogistiaAdapter` (`ELOGISTIA`), `NearDeliveryAdapter` (`NEAR_DELIVERY`), `NoestAdapter` (`NOEST`), `EcomDeliveryAdapter` (`ECOM_DELIVERY`).
+-   **Carrier Logo Asset Publishing**:
+    -   Added 90 PNG logos in `resources/assets/logo/`.
+    -   Added `courier-assets` publish tag in `CourierServiceProvider` to publish logos to `public/vendor/courier/logo/`.
+    -   Added `$provider->getLogoFileName(): string` and `$provider->getLogoUrl(): string` methods to `Provider` enum.
+
+---
+
 ## [1.2.0] - 2026-05-16
 
 ### Added

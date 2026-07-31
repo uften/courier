@@ -31,6 +31,10 @@ final class CourierServiceProvider extends ServiceProvider
             $this->publishes([
                 __DIR__.'/../config/courier.php' => config_path('courier.php'),
             ], 'courier-config');
+
+            $this->publishes([
+                __DIR__.'/../resources/assets/logo' => public_path('vendor/courier/logo'),
+            ], 'courier-assets');
         }
     }
 

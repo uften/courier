@@ -24,12 +24,16 @@ Full API reference and architectural guide for contributors and advanced users.
 ```
 Facade (Courier)
     └── CourierManager                  ← factory + cache
-            ├── YalidineAdapter         (Yalidine + Yalitec)
+            ├── YalidineAdapter         (Yalidine, Yalitec + 4 clones)
             ├── MaystroAdapter
-            ├── ProcolisAdapter         (Procolis + ZR Express legacy)
+            ├── ProcolisAdapter         (Procolis, ZRExpress + 4 clones: ABEX, Colilog, Flash, Leopard)
             ├── ZrExpressNewAdapter     (ZR Express NEW — api.zrexpress.app)
             ├── ZimouAdapter            (Zimou Express — delivery router)
-            └── EcotrackAdapter         (Ecotrack + 22 sub-providers)
+            ├── ElogistiaAdapter        (Elogistia native API)
+            ├── NearDeliveryAdapter     (Near Delivery native API)
+            ├── NoestAdapter            (Noest Express native API)
+            ├── EcomDeliveryAdapter     (E-COM Delivery native API)
+            └── EcotrackAdapter         (Ecotrack + 71 sub-providers)
                         ↑
             AbstractAdapter             ← shared HTTP helpers
                         ↑
