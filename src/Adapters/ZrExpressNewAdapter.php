@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Uften\Courier\Adapters;
 
 use GuzzleHttp\Client;
+use Illuminate\Support\Facades\Log;
 use Uften\Courier\Data\CreateOrderData;
 use Uften\Courier\Data\Credentials\ZrExpressNewCredentials;
 use Uften\Courier\Data\LabelData;
@@ -217,72 +218,70 @@ final class ZrExpressNewAdapter extends AbstractAdapter
      * returns the full rate table for the supplier account.
      *
      * Only wilaya-level entries are returned as RateData. Commune-level
-     * and Unknown entries are skipped since they cannot be reliably mapped
-     * to an integer wilaya code.
+    /**
+     * Get effective delivery rates from endpoint for all destination territories.
      *
-     * @return list<RateData>
+     * Calls GET /api/v1/delivery-pricing/rates which returns rate objects for every destination territory.
+     *
+     * @return array<int, array<string, mixed>>
      */
     public function getRates(?int $fromWilayaId = null, ?int $toWilayaId = null): array
     {
         $response = $this->get('api/v1/delivery-pricing/rates');
-        $rates = $response['rates'] ?? [];
 
-        if (! is_array($rates) || empty($rates)) {
-            return [];
-        }
+        return $response['rates'] ?? [];
+    }
 
-        $result = [];
+    /**
+     * Register a webhook endpoint for parcel status updates with ZR Express New.
+     *
+     * @return array<string, mixed>|null
+     */
+    public function registerWebhook(string $webhookUrl): ?array
+    {
+        $payload = [
+            'url' => $webhookUrl,
+            'description' => 'Rassmi Platform Order Updates',
+            'eventTypes' => ['parcel.state.updated'],
+        ];
 
-        foreach ($rates as $rate) {
-            if (! is_array($rate)) {
-                continue;
-            }
-
-            // Skip commune and Unknown levels — they can't map to a wilaya code
-            $level = mb_strtolower((string) ($rate['toTerritoryLevel'] ?? ''));
-            if ($level !== 'wilaya') {
-                continue;
-            }
-
-            // Resolve the integer wilaya code
-            $wilayaCode = (int) ($rate['toTerritoryCode'] ?? 0);
-
-            if ($wilayaCode === 0) {
-                continue; // Could not resolve wilaya code — skip
-            }
-
-            // Apply optional filter
-            if ($toWilayaId !== null && $wilayaCode !== $toWilayaId) {
-                continue;
-            }
-
-            // Extract home and pickup-point prices from the deliveryPrices array
-            $homePrice = 0.0;
-            $stopDeskPrice = 0.0;
-
-            foreach ($rate['deliveryPrices'] ?? [] as $dp) {
-                $type = mb_strtolower((string) ($dp['deliveryType'] ?? ''));
-                $price = (float) ($dp['price'] ?? 0);
-
-                if ($type === 'home') {
-                    $homePrice = $price;
-                } elseif ($type === 'pickup-point') {
-                    $stopDeskPrice = $price;
+        try {
+            return $this->post('api/v1/suppliers/webhooks/endpoints', $payload);
+        } catch (\Throwable) {
+            try {
+                return $this->post('api/v1/webhooks/endpoints', $payload);
+            } catch (\Throwable $e) {
+                if (function_exists('info')) {
+                    Log::warning('ZR Express New registerWebhook failed: '.$e->getMessage());
                 }
+
+                return null;
             }
-
-            $result[] = new RateData(
-                provider: Provider::ZREXPRESS_NEW,
-                toWilayaId: $wilayaCode,
-                toWilayaName: (string) ($rate['toTerritoryName'] ?? ''),
-                homeDeliveryPrice: $homePrice,
-                stopDeskPrice: $stopDeskPrice,
-                deliveryType: DeliveryType::HOME,
-                fromWilayaId: $fromWilayaId,
-            );
         }
+    }
 
-        return $result;
+    /**
+     * Delete a registered webhook endpoint in ZR Express New.
+     */
+    public function deleteWebhook(string $webhookId): bool
+    {
+        try {
+            $this->delete('api/v1/suppliers/webhooks/endpoints/'.$webhookId);
+
+            return true;
+        } catch (\Throwable) {
+            try {
+                $this->delete('api/v1/webhooks/endpoints/'.$webhookId);
+
+                return true;
+            } catch (\Throwable $e) {
+                if (function_exists('info')) {
+                    Log::warning("ZR Express New deleteWebhook [{$webhookId}] failed: ".$e->getMessage());
+                }
+
+                return false;
+            }
+        }
     }
 
     public function getCreateOrderValidationRules(): array

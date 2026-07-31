@@ -52,6 +52,25 @@ interface ProviderAdapter
     public function getRates(?int $fromWilayaId = null, ?int $toWilayaId = null): array;
 
     /**
+     * Register a webhook endpoint with the shipping provider.
+     *
+     * @return array<string, mixed>|null
+     *
+     * @throws UnsupportedOperationException
+     * @throws CourierException
+     */
+    public function registerWebhook(string $webhookUrl): ?array;
+
+    /**
+     * Delete a registered webhook endpoint with the shipping provider.
+     *
+     *
+     * @throws UnsupportedOperationException
+     * @throws CourierException
+     */
+    public function deleteWebhook(string $webhookId): bool;
+
+    /**
      * Return the provider-specific Laravel validation rules for order creation.
      *
      * @return array<string, mixed>

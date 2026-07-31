@@ -460,7 +460,7 @@ describe('ZimouAdapter — cancelOrder', function (): void {
 // =========================================================================
 describe('ZimouAdapter — getRates', function (): void {
 
-    it('returns RateData from my/prices endpoint', function (): void {
+    it('returns raw rates array from my/prices endpoint', function (): void {
         $response = json_encode([
             'data' => [
                 ['wilaya_id' => 16, 'wilaya_name' => 'Alger', 'express_price' => 400, 'stopdesk_price' => 200],
@@ -472,10 +472,9 @@ describe('ZimouAdapter — getRates', function (): void {
         $rates = $adapter->getRates();
 
         expect($rates)->toHaveCount(2)
-            ->and($rates[0]->toWilayaId)->toBe(16)
-            ->and($rates[0]->homeDeliveryPrice)->toBe(400.0)
-            ->and($rates[0]->stopDeskPrice)->toBe(200.0)
-            ->and($rates[0]->provider)->toBe(Provider::ZIMOU);
+            ->and($rates[0]['wilaya_id'])->toBe(16)
+            ->and($rates[0]['express_price'])->toBe(400)
+            ->and($rates[0]['stopdesk_price'])->toBe(200);
     });
 
     it('returns empty array when prices endpoint returns no data', function (): void {

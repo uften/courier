@@ -10,7 +10,6 @@ use Uften\Courier\Data\CreateOrderData;
 use Uften\Courier\Data\Credentials\TokenCredentials;
 use Uften\Courier\Data\LabelData;
 use Uften\Courier\Data\OrderData;
-use Uften\Courier\Data\RateData;
 use Uften\Courier\Enums\DeliveryType;
 use Uften\Courier\Enums\LabelType;
 use Uften\Courier\Enums\Provider;
@@ -240,42 +239,7 @@ final class ZimouAdapter extends AbstractAdapter
     {
         $raw = $this->get('v3/my/prices');
 
-        $rows = $raw['data'] ?? $raw;
-
-        if (! is_array($rows) || empty($rows)) {
-            return [];
-        }
-
-        $rates = [];
-
-        foreach ($rows as $item) {
-            if (! is_array($item)) {
-                continue;
-            }
-
-            // Zimou returns prices keyed by wilaya — shape varies per account config.
-            // We surface what we can and leave the rest in RateData.
-            $wilayaId = (int) ($item['wilaya_id'] ?? $item['wilaya'] ?? 0);
-            $wilayaName = (string) ($item['wilaya_name'] ?? $item['wilaya'] ?? '');
-
-            $rates[] = new RateData(
-                provider: Provider::ZIMOU,
-                toWilayaId: $wilayaId,
-                toWilayaName: $wilayaName,
-                homeDeliveryPrice: (float) ($item['express_price']
-                    ?? $item['home_price']
-                    ?? $item['price']
-                    ?? 0),
-                stopDeskPrice: (float) ($item['stopdesk_price']
-                    ?? $item['point_relais_price']
-                    ?? $item['price']
-                    ?? 0),
-                deliveryType: DeliveryType::HOME,
-                fromWilayaId: $fromWilayaId,
-            );
-        }
-
-        return $rates;
+        return $raw['data'] ?? (is_array($raw) ? $raw : []);
     }
 
     public function getCreateOrderValidationRules(): array

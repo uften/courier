@@ -41,8 +41,8 @@ abstract class AbstractAdapter implements ProviderAdapter, StatusNormalizer
     ) {
         $this->http = $httpClient ?? new Client([
             'base_uri' => rtrim($this->baseUrl, '/').'/',
-            'timeout' => $this->timeoutSeconds,
-            'connect_timeout' => 10,
+            'timeout' => (int) config('courier.http.timeout', $this->timeoutSeconds),
+            'connect_timeout' => (int) config('courier.http.connect_timeout', 30),
             RequestOptions::HEADERS => array_merge(
                 ['Accept' => 'application/json', 'Content-Type' => 'application/json'],
                 $this->defaultHeaders,
@@ -76,6 +76,16 @@ abstract class AbstractAdapter implements ProviderAdapter, StatusNormalizer
     public function getRates(?int $fromWilayaId = null, ?int $toWilayaId = null): array
     {
         throw new UnsupportedOperationException('getRates', $this->providerEnum);
+    }
+
+    public function registerWebhook(string $webhookUrl): ?array
+    {
+        throw new UnsupportedOperationException('registerWebhook', $this->providerEnum);
+    }
+
+    public function deleteWebhook(string $webhookId): bool
+    {
+        throw new UnsupportedOperationException('deleteWebhook', $this->providerEnum);
     }
 
     public function cancelOrder(string $trackingNumber): bool

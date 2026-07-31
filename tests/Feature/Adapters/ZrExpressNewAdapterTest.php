@@ -445,31 +445,28 @@ describe('ZrExpressNewAdapter — getLabel', function (): void {
 
 describe('ZrExpressNewAdapter — getRates', function (): void {
 
-    it('returns only wilaya-level RateData, skipping commune and Unknown levels', function (): void {
+    it('returns raw rates array from endpoint', function (): void {
         $adapter = zrnAdapter([new Response(200, [], json_encode(ratesFixture()))]);
         $rates = $adapter->getRates();
 
-        expect($rates)->toHaveCount(2)
-            ->and($rates[0]->toWilayaId)->toBe(16)
-            ->and($rates[0]->toWilayaName)->toBe('Alger')
-            ->and($rates[0]->homeDeliveryPrice)->toBe(400.0)
-            ->and($rates[0]->stopDeskPrice)->toBe(350.0)
-            ->and($rates[0]->provider)->toBe(Provider::ZREXPRESS_NEW)
-            ->and($rates[1]->toWilayaId)->toBe(9)
-            ->and($rates[1]->homeDeliveryPrice)->toBe(450.0)
-            ->and($rates[1]->stopDeskPrice)->toBe(380.0);
+        expect($rates)->toHaveCount(4)
+            ->and($rates[0]['toTerritoryCode'])->toBe(16)
+            ->and($rates[0]['toTerritoryName'])->toBe('Alger')
+            ->and($rates[0]['deliveryPrices'][0]['price'])->toBe(400)
+            ->and($rates[0]['deliveryPrices'][1]['price'])->toBe(350)
+            ->and($rates[1]['toTerritoryCode'])->toBe(9);
     });
 
-    it('filters by toWilayaId when provided', function (): void {
+    it('does not filter by toWilayaId when provided', function (): void {
         $adapter = zrnAdapter([new Response(200, [], json_encode(ratesFixture()))]);
         $rates = $adapter->getRates(toWilayaId: 9);
-        expect($rates)->toHaveCount(1)->and($rates[0]->toWilayaId)->toBe(9);
+        expect($rates)->toHaveCount(4);
     });
 
-    it('skips wilaya resolution when toTerritoryCode is null (as static maps are removed)', function (): void {
+    it('returns rate objects when toTerritoryCode is null', function (): void {
         $ratesNoCode = [
             'rates' => [[
-                'toTerritoryId' => 'e9a1e9cf-8475-4768-94cc-0888d094ff47', // Constantine=25
+                'toTerritoryId' => 'e9a1e9cf-8475-4768-94cc-0888d094ff47',
                 'toTerritoryCode' => null,
                 'toTerritoryName' => 'Constantine',
                 'toTerritoryLevel' => 'wilaya',
@@ -481,7 +478,8 @@ describe('ZrExpressNewAdapter — getRates', function (): void {
         ];
         $adapter = zrnAdapter([new Response(200, [], json_encode($ratesNoCode))]);
         $rates = $adapter->getRates();
-        expect($rates)->toBeEmpty();
+        expect($rates)->toHaveCount(1)
+            ->and($rates[0]['toTerritoryName'])->toBe('Constantine');
     });
 
     it('does not append wilaya filter params to the API request URL', function (): void {

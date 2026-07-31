@@ -160,10 +160,10 @@ return [
     |--------------------------------------------------------------------------
     */
     'http' => [
-        'timeout' => (int) env('COURIER_HTTP_TIMEOUT', 30),
-        'connect_timeout' => (int) env('COURIER_HTTP_CONNECT_TIMEOUT', 10),
-        'retry_times' => (int) env('COURIER_HTTP_RETRY', 1),
-        'retry_sleep_ms' => (int) env('COURIER_HTTP_RETRY_SLEEP', 200),
+        'timeout' => (int) env('COURIER_HTTP_TIMEOUT', 45),
+        'connect_timeout' => (int) env('COURIER_HTTP_CONNECT_TIMEOUT', 30),
+        'retry_times' => (int) env('COURIER_HTTP_RETRY', 3),
+        'retry_sleep_ms' => (int) env('COURIER_HTTP_RETRY_SLEEP', 500),
     ],
 
 ];
