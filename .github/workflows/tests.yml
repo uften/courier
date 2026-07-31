@@ -45,8 +45,7 @@ jobs:
           composer update \
             --${{ matrix.dependency-version }} \
             --prefer-dist \
-            --no-interaction \
-            --no-audit
+            --no-interaction
 
       - name: Run tests
         run: composer test
@@ -65,7 +64,7 @@ jobs:
           php-version: "8.4"
 
       - name: Install dependencies
-        run: composer install --prefer-dist --no-interaction --no-audit
+        run: composer install --prefer-dist --no-interaction
 
       - name: Check code style
         run: composer format -- --test
